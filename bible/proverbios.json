@@ -1,0 +1,36 @@
+{
+  "book": "Provérbios",
+  "totalChapters": 31,
+  "chapters": {
+    "1": {
+      "verses": {
+        "1": "Provérbios de Salomão, filho de Davi, rei de Israel;",
+        "2": "Para se conhecer a sabedoria e a instrução; para se entenderem as palavras da prudência;",
+        "3": "Para se receber a instrução do entendimento, a justiça, o juízo e a equidade;",
+        "4": "Para dar aos simples, prudência, e aos moços, conhecimento e bom siso;",
+        "5": "O sábio ouvirá e crescerá em conhecimento, e o entendido adquirirá sábios conselhos;",
+        "6": "Para entender os provérbios e sua interpretação; as palavras dos sábios e as suas proposições.",
+        "7": "O temor do SENHOR é o princípio do conhecimento; os loucos desprezam a sabedoria e a instrução."
+      }
+    },
+    "2": {
+      "verses": {
+        "1": "Filho meu, se aceitares as minhas palavras e esconderes contigo os meus mandamentos,",
+        "2": "Para fazeres ao teu ouvido estar atento à sabedoria; e inclinares o teu coração ao entendimento;",
+        "3": "Se clamares por conhecimento, e por inteligência alçares a tua voz,",
+        "4": "Se como a prata a buscares e como a tesouros escondidos a procurares,",
+        "5": "Então entenderás o temor do SENHOR, e acharás o conhecimento de Deus."
+      }
+    },
+    "3": {
+      "verses": {
+        "1": "Filho meu, não te esqueças da minha lei, e o teu coração guarde os meus mandamentos.",
+        "2": "Porque eles aumentarão os teus dias e te acrescentarão anos de vida e paz.",
+        "3": "Não te desamparem a benignidade e a fidelidade; ata-as ao teu pescoço; escreve-as na tábua do teu coração;",
+        "4": "E acharás graça e bom entendimento aos olhos de Deus e do homem.",
+        "5": "Confia no SENHOR de todo o teu coração e não te estribes no teu próprio entendimento."
+      }
+    }
+  }
+}
+
