@@ -814,7 +814,7 @@ export default function ChapterPage() {
                                 {summary.authorFavoriteVerse && (
                                   <p className="text-xs italic mt-1 flex items-center gap-1" style={{ color: 'var(--accent-violet)' }}>
                                     <BookMarked className="w-3 h-3" />
-                                    "{summary.authorFavoriteVerse}"
+                                    &quot;{summary.authorFavoriteVerse}&quot;
                                   </p>
                                 )}
                               </div>
@@ -952,7 +952,7 @@ export default function ChapterPage() {
                       {comment.authorFavoriteVerse && (
                         <p className="text-xs italic mt-1 flex items-center gap-1" style={{ color: 'var(--accent-violet)' }}>
                           <BookMarked className="w-3 h-3" />
-                          "{comment.authorFavoriteVerse}"
+                          &quot;{comment.authorFavoriteVerse}&quot;
                         </p>
                       )}
                     </div>

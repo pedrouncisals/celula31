@@ -527,7 +527,7 @@ export default function ReflectionsPage() {
                           <div className="flex items-center gap-1">
                             <BookMarked className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--accent-violet)' }} />
                             <span className="text-xs italic truncate" style={{ color: 'var(--accent-violet)' }}>
-                              "{reflection.authorFavoriteVerse}"
+                              &quot;{reflection.authorFavoriteVerse}&quot;
                             </span>
                           </div>
                         )}
@@ -697,7 +697,7 @@ export default function ReflectionsPage() {
                                     )}
                                     {comment.authorFavoriteVerse && (
                                       <p className="text-xs italic mb-1" style={{ color: 'var(--accent-violet)' }}>
-                                        "{comment.authorFavoriteVerse}"
+                                        &quot;{comment.authorFavoriteVerse}&quot;
                                       </p>
                                     )}
                                     <p className="text-sm mb-1" style={{ color: 'var(--text-secondary)' }}>

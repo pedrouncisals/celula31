@@ -355,7 +355,7 @@ export default function ProfilePage() {
                     <div className="flex items-center justify-center sm:justify-start gap-2 mb-2 sm:mb-3 p-2 rounded-lg" style={{ background: 'var(--bg-secondary)' }}>
                       <BookMarked className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--accent-violet)' }} />
                       <span className="text-xs sm:text-sm font-medium italic text-center sm:text-left" style={{ color: 'var(--accent-violet)' }}>
-                        "{user.favoriteVerse}"
+                        &quot;{user.favoriteVerse}&quot;
                       </span>
                     </div>
                   )}
