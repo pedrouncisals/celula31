@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { collection, query, where, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Link from "next/link";
-import { ArrowLeft, Plus, FileText, Calendar, Trash2, Edit2, BookOpen, Search, X, Filter } from "lucide-react";
+import { ArrowLeft, Plus, FileText, Calendar, Trash2, Edit2, BookOpen, Search, X, Filter, Eye } from "lucide-react";
 
 interface Sermon {
   id: string;
@@ -134,8 +134,8 @@ export default function SermonsPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-gray-600">Carregando...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+        <div style={{ color: 'var(--text-secondary)' }}>Carregando...</div>
       </div>
     );
   }
@@ -145,24 +145,25 @@ export default function SermonsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
+    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+      <header className="sticky top-0 z-10" style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-subtle)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+            className="inline-flex items-center gap-2 mb-4 hover-lift"
+            style={{ color: 'var(--text-secondary)' }}
           >
             <ArrowLeft className="w-5 h-5" />
             Voltar
           </Link>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Criador de Sermões</h1>
-              <p className="text-gray-600 text-sm mt-1">Organize e crie seus sermões</p>
+              <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Criador de Sermões</h1>
+              <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Organize e crie seus sermões</p>
             </div>
             <Link
               href="/sermons/create"
-              className="flex items-center gap-2 bg-purple-600 text-white px-5 py-2.5 rounded-lg hover:bg-purple-700 transition-all button-press hover-lift shadow-md hover:shadow-lg font-medium"
+              className="btn-violet flex items-center gap-2 hover-lift"
             >
               <Plus className="w-5 h-5" />
               Novo Sermão
@@ -174,22 +175,28 @@ export default function SermonsPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Busca e Filtros */}
         {sermons.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 animate-fade-in">
+          <div className="card-premium p-6 mb-6 animate-fade-in">
             <div className="space-y-4">
               {/* Busca */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--text-muted)' }} />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar por título ou passagem bíblica..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+                  className="w-full pl-10 pr-4 py-2 rounded-xl border transition-all"
+                  style={{
+                    background: 'var(--bg-secondary)',
+                    borderColor: 'var(--border-subtle)',
+                    color: 'var(--text-primary)'
+                  }}
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 hover-lift"
+                    style={{ color: 'var(--text-muted)' }}
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -199,15 +206,20 @@ export default function SermonsPage() {
               {/* Filtros */}
               <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-700">Filtros:</span>
+                  <Filter className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                  <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Filtros:</span>
                 </div>
 
                 {/* Filtro por data */}
                 <select
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value as "all" | "month" | "year")}
-                  className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm text-gray-900"
+                  className="px-3 py-1.5 rounded-lg border transition-all text-sm"
+                  style={{
+                    background: 'var(--bg-secondary)',
+                    borderColor: 'var(--border-subtle)',
+                    color: 'var(--text-primary)'
+                  }}
                 >
                   <option value="all">Todas as datas</option>
                   <option value="month">Último mês</option>
@@ -219,7 +231,12 @@ export default function SermonsPage() {
                   <select
                     value={selectedTag || ""}
                     onChange={(e) => setSelectedTag(e.target.value || null)}
-                    className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm text-gray-900"
+                    className="px-3 py-1.5 rounded-lg border transition-all text-sm"
+                    style={{
+                      background: 'var(--bg-secondary)',
+                      borderColor: 'var(--border-subtle)',
+                      color: 'var(--text-primary)'
+                    }}
                   >
                     <option value="">Todas as tags</option>
                     {allTags.map((tag) => (
@@ -238,7 +255,8 @@ export default function SermonsPage() {
                       setSelectedTag(null);
                       setDateFilter("all");
                     }}
-                    className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700"
+                    className="flex items-center gap-1 text-sm hover-lift"
+                    style={{ color: 'var(--accent-violet)' }}
                   >
                     <X className="w-4 h-4" />
                     Limpar filtros
@@ -247,7 +265,7 @@ export default function SermonsPage() {
               </div>
 
               {/* Resultados */}
-              <div className="text-sm text-gray-600">
+              <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                 {filteredSermons.length === sermons.length ? (
                   <span>{sermons.length} sermão{sermons.length !== 1 ? "s" : ""}</span>
                 ) : (
@@ -261,30 +279,30 @@ export default function SermonsPage() {
         )}
 
         {sermons.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
-            <FileText className="w-20 h-20 text-gray-300 mx-auto mb-6" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum sermão ainda</h3>
-            <p className="text-gray-600 mb-6">Crie seu primeiro sermão e comece a organizar suas mensagens</p>
+          <div className="text-center py-16 card-premium">
+            <FileText className="w-20 h-20 mx-auto mb-6" style={{ color: 'var(--text-muted)' }} />
+            <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Nenhum sermão ainda</h3>
+            <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>Crie seu primeiro sermão e comece a organizar suas mensagens</p>
             <Link
               href="/sermons/create"
-              className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-all button-press hover-lift shadow-md hover:shadow-lg"
+              className="inline-flex items-center gap-2 btn-violet hover-lift"
             >
               <Plus className="w-5 h-5" />
               Criar Primeiro Sermão
             </Link>
           </div>
         ) : filteredSermons.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
-            <Search className="w-20 h-20 text-gray-300 mx-auto mb-6" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum sermão encontrado</h3>
-            <p className="text-gray-600 mb-6">Tente ajustar os filtros de busca</p>
+          <div className="text-center py-16 card-premium">
+            <Search className="w-20 h-20 mx-auto mb-6" style={{ color: 'var(--text-muted)' }} />
+            <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Nenhum sermão encontrado</h3>
+            <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>Tente ajustar os filtros de busca</p>
             <button
               onClick={() => {
                 setSearchQuery("");
                 setSelectedTag(null);
                 setDateFilter("all");
               }}
-              className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-all button-press hover-lift"
+              className="inline-flex items-center gap-2 btn-violet hover-lift"
             >
               Limpar Filtros
             </button>
@@ -294,18 +312,18 @@ export default function SermonsPage() {
             {filteredSermons.map((sermon) => (
               <div
                 key={sermon.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all duration-200 hover-lift animate-fade-in"
+                className="card-premium p-6 hover-lift hover-glow-violet animate-fade-in"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
+                    <h3 className="text-lg font-bold mb-2 line-clamp-2" style={{ color: 'var(--text-primary)' }}>
                       {sermon.title}
                     </h3>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                      <BookOpen className="w-4 h-4 text-purple-600" />
+                    <div className="flex items-center gap-2 text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
+                      <BookOpen className="w-4 h-4" style={{ color: 'var(--accent-violet)' }} />
                       <span className="font-medium">{sermon.passage}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
                       <Calendar className="w-4 h-4" />
                       <span>{new Date(sermon.date).toLocaleDateString("pt-BR")}</span>
                     </div>
@@ -314,13 +332,14 @@ export default function SermonsPage() {
                         {sermon.tags.slice(0, 3).map((tag) => (
                           <span
                             key={tag}
-                            className="inline-block bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-xs"
+                            className="inline-block px-2 py-0.5 rounded text-xs"
+                            style={{ background: 'rgba(169, 139, 255, 0.2)', color: 'var(--accent-violet)' }}
                           >
                             {tag}
                           </span>
                         ))}
                         {sermon.tags.length > 3 && (
-                          <span className="inline-block text-gray-500 text-xs">
+                          <span className="inline-block text-xs" style={{ color: 'var(--text-muted)' }}>
                             +{sermon.tags.length - 3}
                           </span>
                         )}
@@ -328,17 +347,24 @@ export default function SermonsPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 pt-4 border-t border-gray-100">
+                <div className="flex items-center gap-2 pt-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                  <Link
+                    href={`/sermons/${sermon.id}/view`}
+                    className="flex-1 flex items-center justify-center gap-2 btn-emerald hover-lift text-sm font-medium"
+                  >
+                    <Eye className="w-4 h-4" />
+                    Visualizar
+                  </Link>
                   <Link
                     href={`/sermons/${sermon.id}`}
-                    className="flex-1 flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-all button-press hover-lift text-sm font-medium"
+                    className="flex items-center justify-center gap-2 btn-violet hover-lift text-sm font-medium"
                   >
                     <Edit2 className="w-4 h-4" />
-                    Editar
                   </Link>
                   <button
                     onClick={() => handleDeleteSermon(sermon.id)}
-                    className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-all button-press text-sm font-medium"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all button-press text-sm font-medium hover-lift"
+                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

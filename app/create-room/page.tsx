@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { collection, addDoc, doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BookOpen } from "lucide-react";
 
 const BIBLE_BOOKS = [
   // ANTIGO TESTAMENTO (39 livros)
@@ -153,30 +153,31 @@ export default function CreateRoomPage() {
   const today = new Date().toISOString().split("T")[0];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
+    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+      <header className="sticky top-0 z-10" style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-subtle)' }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link
             href="/home"
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+            className="inline-flex items-center gap-2 mb-4 hover-lift"
+            style={{ color: 'var(--text-secondary)' }}
           >
             <ArrowLeft className="w-5 h-5" />
             Voltar
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Criar Nova Sala</h1>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Criar Nova Sala</h1>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6 animate-fade-in">
+        <form onSubmit={handleSubmit} className="card-premium p-6 space-y-6 animate-fade-in">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            <div className="p-3 rounded-lg text-sm" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
               {error}
             </div>
           )}
 
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="title" className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
               Nome da Sala
             </label>
             <input
@@ -185,32 +186,45 @@ export default function CreateRoomPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-xl border transition-all"
+              style={{
+                background: 'var(--bg-secondary)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)'
+              }}
               placeholder="Ex: Estudo de Provérbios - Grupo 1"
             />
           </div>
 
           <div>
-            <label htmlFor="book" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="book" className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
               Livro da Bíblia
             </label>
-            <select
-              id="book"
-              value={book}
-              onChange={(e) => setBook(e.target.value)}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {BIBLE_BOOKS.map((b) => (
-                <option key={b.name} value={b.name}>
-                  {b.name} ({b.chapters} capítulos)
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <BookOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+              <select
+                id="book"
+                value={book}
+                onChange={(e) => setBook(e.target.value)}
+                required
+                className="w-full pl-10 pr-4 py-3 rounded-xl border transition-all"
+                style={{
+                  background: 'var(--bg-secondary)',
+                  borderColor: 'var(--border-subtle)',
+                  color: 'var(--text-primary)'
+                }}
+              >
+                {BIBLE_BOOKS.map((b) => (
+                  <option key={b.name} value={b.name}>
+                    {b.name} ({b.chapters} capítulos)
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div>
-            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="startDate" className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
               Data de Início
             </label>
             <input
@@ -220,37 +234,44 @@ export default function CreateRoomPage() {
               onChange={(e) => setStartDate(e.target.value)}
               required
               min={today}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-xl border transition-all"
+              style={{
+                background: 'var(--bg-secondary)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)'
+              }}
             />
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm" style={{ color: 'var(--text-muted)' }}>
               O primeiro capítulo será desbloqueado nesta data
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
               Visibilidade
             </label>
-            <div className="space-y-2">
-              <label className="flex items-center">
+            <div className="space-y-3">
+              <label className="flex items-center p-3 rounded-lg cursor-pointer hover-lift" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                 <input
                   type="radio"
                   value="public"
                   checked={visibility === "public"}
                   onChange={(e) => setVisibility(e.target.value as "public" | "private")}
-                  className="mr-2"
+                  className="mr-3"
+                  style={{ accentColor: 'var(--accent-emerald)' }}
                 />
-                <span>Pública - Qualquer pessoa pode entrar</span>
+                <span style={{ color: 'var(--text-primary)' }}>Pública - Qualquer pessoa pode entrar</span>
               </label>
-              <label className="flex items-center">
+              <label className="flex items-center p-3 rounded-lg cursor-pointer hover-lift" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                 <input
                   type="radio"
                   value="private"
                   checked={visibility === "private"}
                   onChange={(e) => setVisibility(e.target.value as "public" | "private")}
-                  className="mr-2"
+                  className="mr-3"
+                  style={{ accentColor: 'var(--accent-violet)' }}
                 />
-                <span>Privada - Apenas com link de convite</span>
+                <span style={{ color: 'var(--text-primary)' }}>Privada - Apenas com link de convite</span>
               </label>
             </div>
           </div>
@@ -258,7 +279,7 @@ export default function CreateRoomPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-all button-press hover-lift shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md disabled:hover:scale-100"
+            className="w-full btn-emerald hover-lift disabled:opacity-50"
           >
             {loading ? "Criando..." : "Criar Sala"}
           </button>
@@ -267,4 +288,3 @@ export default function CreateRoomPage() {
     </div>
   );
 }
-

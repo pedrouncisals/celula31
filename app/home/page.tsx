@@ -7,7 +7,7 @@ import { collection, query, where, getDocs, doc, getDoc } from "firebase/firesto
 import { db } from "@/lib/firebase";
 import { Room } from "@/types";
 import Link from "next/link";
-import { BookOpen, Plus, Users, Calendar } from "lucide-react";
+import { BookOpen, Plus, Users, Calendar, ArrowLeft } from "lucide-react";
 
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
@@ -78,8 +78,8 @@ export default function HomePage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600">Carregando...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+        <div style={{ color: 'var(--text-secondary)' }}>Carregando...</div>
       </div>
     );
   }
@@ -89,21 +89,24 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
+    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+      <header className="sticky top-0 z-10" style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-subtle)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 text-sm"
+            className="inline-flex items-center gap-2 mb-4 text-sm hover-lift"
+            style={{ color: 'var(--text-secondary)' }}
           >
-            ← Voltar aos Módulos
+            <ArrowLeft className="w-4 h-4" />
+            Voltar aos Módulos
           </Link>
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Estudo Bíblico - Célula</h1>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Estudo Bíblico - Célula</h1>
             <div className="flex items-center gap-4">
               <Link
                 href="/profile"
-                className="flex items-center gap-2 text-gray-700 hover:text-gray-900"
+                className="flex items-center gap-2 hover-lift"
+                style={{ color: 'var(--text-secondary)' }}
               >
                 {user.photoUrl && (
                   <img
@@ -122,12 +125,12 @@ export default function HomePage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">Minhas Salas</h2>
-            <p className="text-gray-600 text-sm">Salas públicas e privadas que você participa</p>
+            <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Minhas Salas</h2>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Salas públicas e privadas que você participa</p>
           </div>
           <Link
             href="/create-room"
-            className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg font-medium"
+            className="btn-emerald flex items-center gap-2 hover-lift"
           >
             <Plus className="w-5 h-5" />
             Criar Sala
@@ -135,13 +138,13 @@ export default function HomePage() {
         </div>
 
         {rooms.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
-            <BookOpen className="w-20 h-20 text-gray-300 mx-auto mb-6" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhuma sala encontrada</h3>
-            <p className="text-gray-600 mb-6">Crie sua primeira sala de estudo ou entre em uma sala privada</p>
+          <div className="text-center py-16 card-premium">
+            <BookOpen className="w-20 h-20 mx-auto mb-6" style={{ color: 'var(--text-muted)' }} />
+            <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Nenhuma sala encontrada</h3>
+            <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>Crie sua primeira sala de estudo ou entre em uma sala privada</p>
             <Link
               href="/create-room"
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
+              className="inline-flex items-center gap-2 btn-emerald hover-lift"
             >
               <Plus className="w-5 h-5" />
               Criar Primeira Sala
@@ -150,32 +153,34 @@ export default function HomePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {rooms.map((room) => (
-                  <Link
-                    key={room.id}
-                    href={`/room/${room.id}`}
-                    className="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all duration-200 hover-lift animate-fade-in"
-                  >
+              <Link
+                key={room.id}
+                href={`/room/${room.id}`}
+                className="group card-premium p-6 hover-lift hover-glow-emerald animate-fade-in"
+              >
                 <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors flex-1 pr-2">
+                  <h3 className="text-lg font-bold flex-1 pr-2 group-hover:gradient-text-emerald transition-all" style={{ color: 'var(--text-primary)' }}>
                     {room.title}
                   </h3>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {room.visibility === "private" && (
-                      <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full font-medium">
+                      <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ background: 'rgba(232, 194, 122, 0.2)', color: 'var(--accent-gold)' }}>
                         Privada
                       </span>
                     )}
-                    <BookOpen className="w-5 h-5 text-blue-600" />
+                    <div className="p-2 rounded-lg" style={{ background: 'var(--gradient-emerald)' }}>
+                      <BookOpen className="w-4 h-4" style={{ color: 'var(--bg-primary)' }} />
+                    </div>
                   </div>
                 </div>
-                <p className="text-gray-700 font-medium mb-4">{room.book}</p>
-                <div className="flex items-center gap-4 text-sm text-gray-600 pt-4 border-t border-gray-100">
+                <p className="font-medium mb-4" style={{ color: 'var(--text-secondary)' }}>{room.book}</p>
+                <div className="flex items-center gap-4 text-sm pt-4" style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)' }}>
                   <div className="flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4 text-gray-400" />
+                    <Calendar className="w-4 h-4" />
                     <span>{new Date(room.startDate).toLocaleDateString("pt-BR")}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Users className="w-4 h-4 text-gray-400" />
+                    <Users className="w-4 h-4" />
                     <span>{room.totalChapters} cap.</span>
                   </div>
                 </div>
@@ -187,4 +192,3 @@ export default function HomePage() {
     </div>
   );
 }
-

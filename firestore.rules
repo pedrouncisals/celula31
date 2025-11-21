@@ -103,6 +103,94 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && 
         resource.data.authorId == request.auth.uid;
     }
+    
+    // ============================================
+    // HIGHLIGHTS DE VERSÍCULOS
+    // ============================================
+    match /verseHighlights/{highlightId} {
+      // Usuários podem ler apenas seus próprios highlights
+      allow read: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+      // Usuários podem criar highlights apenas para si mesmos
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid;
+      // Usuários podem atualizar apenas seus próprios highlights (e não podem mudar o userId)
+      allow update: if request.auth != null && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId;
+      // Usuários podem excluir apenas seus próprios highlights
+      allow delete: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+    }
+    
+    // ============================================
+    // PLANOS DE LEITURA
+    // ============================================
+    match /readingPlans/{planId} {
+      // Qualquer usuário autenticado pode ler planos
+      allow read: if request.auth != null;
+      // Apenas admins podem criar/atualizar planos (por enquanto, qualquer usuário autenticado)
+      allow create, update: if request.auth != null;
+    }
+    
+    // Progresso de leitura do usuário
+    match /users/{userId}/readingPlans/{planId} {
+      // Usuários podem ler apenas seu próprio progresso
+      allow read: if request.auth != null && 
+        request.auth.uid == userId;
+      // Usuários podem criar/atualizar apenas seu próprio progresso
+      allow write: if request.auth != null && 
+        request.auth.uid == userId;
+    }
+    
+    // ============================================
+    // REFLEXÕES
+    // ============================================
+    match /reflections/{reflectionId} {
+      // Qualquer usuário autenticado pode ler reflexões (exceto deletadas)
+      allow read: if request.auth != null && 
+        (!('deleted' in resource.data) || resource.data.deleted != true);
+      
+      // Usuários autenticados podem criar reflexões e devem ser o autor
+      allow create: if request.auth != null && 
+        request.resource.data.authorId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['authorId', 'title', 'content', 'likes', 'likedBy', 'createdAt']);
+      
+      // Regras de atualização:
+      // 1. Autor pode atualizar qualquer campo (exceto authorId)
+      // 2. Qualquer usuário pode atualizar apenas likes e likedBy (para curtidas)
+      allow update: if request.auth != null && 
+        (
+          // Autor pode atualizar qualquer campo, mas não pode mudar authorId
+          (resource.data.authorId == request.auth.uid &&
+           request.resource.data.authorId == resource.data.authorId) ||
+          // Qualquer usuário pode atualizar apenas likes e likedBy
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) &&
+            request.resource.data.authorId == resource.data.authorId &&
+            request.resource.data.title == resource.data.title &&
+            request.resource.data.content == resource.data.content
+          )
+        );
+      
+      // Apenas o autor pode excluir (ou marcar como deletado)
+      allow delete: if request.auth != null && 
+        resource.data.authorId == request.auth.uid;
+      
+      // Comentários das reflexões
+      match /comments/{commentId} {
+        // Qualquer usuário autenticado pode ler comentários (exceto deletados)
+        allow read: if request.auth != null && 
+          (!('deleted' in resource.data) || resource.data.deleted != true);
+        // Usuários autenticados podem criar comentários e devem ser o autor
+        allow create: if request.auth != null && 
+          request.resource.data.authorId == request.auth.uid &&
+          request.resource.data.reflectionId == reflectionId;
+        // Apenas o autor pode editar/excluir seu próprio comentário
+        allow update, delete: if request.auth != null && 
+          resource.data.authorId == request.auth.uid;
+      }
+    }
   }
 }
 

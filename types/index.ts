@@ -4,6 +4,8 @@ export interface User {
   email: string;
   photoUrl: string;
   bio: string;
+  church?: string;
+  favoriteVerse?: string; // Ex: "João 3:16"
   streak: number;
 }
 
@@ -39,6 +41,7 @@ export interface Summary {
   createdAt: string; // ISO string
   authorName?: string;
   authorPhoto?: string;
+  authorFavoriteVerse?: string;
 }
 
 export interface Comment {
@@ -49,6 +52,7 @@ export interface Comment {
   createdAt: string; // ISO string
   authorName?: string;
   authorPhoto?: string;
+  authorFavoriteVerse?: string;
 }
 
 export interface BibleBook {
@@ -61,5 +65,32 @@ export interface BibleBook {
       };
     };
   };
+}
+
+export interface Reflection {
+  id: string;
+  authorId: string;
+  title: string;
+  content: string;
+  tags?: string[];
+  likes: number;
+  likedBy?: string[];
+  createdAt: string; // ISO string
+  authorName?: string;
+  authorPhoto?: string;
+  authorFavoriteVerse?: string;
+  authorChurch?: string;
+}
+
+export interface ReflectionComment {
+  id: string;
+  authorId: string;
+  reflectionId: string;
+  message: string;
+  createdAt: string; // ISO string
+  authorName?: string;
+  authorPhoto?: string;
+  authorFavoriteVerse?: string;
+  authorChurch?: string;
 }
 

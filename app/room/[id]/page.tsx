@@ -5,10 +5,10 @@ import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Room } from "@/types";
+import { Room, Summary } from "@/types";
 import { calculateCurrentChapter, isChapterUnlocked } from "@/lib/utils";
 import Link from "next/link";
-import { BookOpen, ArrowLeft, Lock, Trash2, Share2, Copy, Check } from "lucide-react";
+import { BookOpen, ArrowLeft, Lock, Trash2, Share2, Copy, Check, CheckCircle } from "lucide-react";
 
 export default function RoomPage() {
   const { user, loading: authLoading } = useAuth();
@@ -24,6 +24,7 @@ export default function RoomPage() {
   const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [inviteError, setInviteError] = useState("");
+  const [readChapters, setReadChapters] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -36,6 +37,18 @@ export default function RoomPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading, roomId, router, searchParams]);
+
+  // Recarregar capítulos lidos quando a página receber foco (usuário voltou de um capítulo)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (room && isMember && user) {
+        loadReadChapters(room);
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [room, isMember, user]);
 
   const loadRoom = async () => {
     if (!user) return;
@@ -60,10 +73,43 @@ export default function RoomPage() {
       if (inviteCode && !memberExists && roomData.visibility === "private") {
         await handleInviteJoin(inviteCode, roomData);
       }
+
+      // Carregar capítulos lidos (verificar resumos do usuário)
+      if (memberExists) {
+        await loadReadChapters(roomData);
+      }
     } catch (error) {
       console.error("Error loading room:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadReadChapters = async (roomData: Room) => {
+    if (!user) return;
+
+    try {
+      const readSet = new Set<number>();
+      
+      // Para cada capítulo, verificar se o usuário tem resumo
+      for (let chapterNum = 1; chapterNum <= roomData.totalChapters; chapterNum++) {
+        if (!isChapterUnlocked(roomData.startDate, chapterNum)) continue;
+        
+        const summariesQuery = query(
+          collection(db, "rooms", roomId, "summaries"),
+          where("chapter", "==", chapterNum),
+          where("authorId", "==", user.id)
+        );
+        const summariesSnapshot = await getDocs(summariesQuery);
+        
+        if (!summariesSnapshot.empty) {
+          readSet.add(chapterNum);
+        }
+      }
+      
+      setReadChapters(readSet);
+    } catch (error) {
+      console.error("Error loading read chapters:", error);
     }
   };
 
@@ -145,8 +191,8 @@ export default function RoomPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600">Carregando...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+        <div style={{ color: 'var(--text-secondary)' }}>Carregando...</div>
       </div>
     );
   }
@@ -159,20 +205,21 @@ export default function RoomPage() {
   const chapters = Array.from({ length: room.totalChapters }, (_, i) => i + 1);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
+    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+      <header className="sticky top-0 z-10" style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-subtle)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link
             href="/home"
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+            className="inline-flex items-center gap-2 mb-4 hover-lift"
+            style={{ color: 'var(--text-secondary)' }}
           >
             <ArrowLeft className="w-5 h-5" />
             Voltar
           </Link>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{room.title}</h1>
-              <p className="text-gray-600">{room.book}</p>
+              <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{room.title}</h1>
+              <p style={{ color: 'var(--text-secondary)' }}>{room.book}</p>
             </div>
             <div className="flex items-center gap-2">
               {isMember && room.adminId === user.id && (
@@ -180,7 +227,7 @@ export default function RoomPage() {
                       {room.visibility === "private" && (
                         <button
                           onClick={() => setShowInviteModal(true)}
-                          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all button-press hover-lift shadow-md hover:shadow-lg"
+                          className="flex items-center gap-2 btn-emerald hover-lift"
                         >
                           <Share2 className="w-4 h-4" />
                           Compartilhar
@@ -189,7 +236,8 @@ export default function RoomPage() {
                       <button
                         onClick={handleDeleteRoom}
                         disabled={deleting}
-                        className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all button-press hover-lift shadow-md hover:shadow-lg disabled:opacity-50 disabled:hover:shadow-md disabled:hover:scale-100"
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all button-press hover-lift disabled:opacity-50"
+                        style={{ background: '#ef4444', color: 'white' }}
                       >
                         <Trash2 className="w-4 h-4" />
                         {deleting ? "Excluindo..." : "Excluir Sala"}
@@ -200,7 +248,7 @@ export default function RoomPage() {
                 <button
                   onClick={handleJoinRoom}
                   disabled={joining}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="btn-violet transition-colors disabled:opacity-50"
                 >
                   {joining ? "Entrando..." : "Entrar na Sala"}
                 </button>
@@ -212,30 +260,30 @@ export default function RoomPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {inviteError && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          <div className="mb-4 p-4 rounded-lg" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
             {inviteError}
           </div>
         )}
         {!isMember ? (
           <div className="text-center py-12">
-            <p className="text-gray-600 mb-4">Você precisa entrar na sala para ver os capítulos</p>
+            <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>Você precisa entrar na sala para ver os capítulos</p>
             {room.visibility === "private" && (
-              <p className="text-sm text-gray-500 mb-4">Esta é uma sala privada. Você precisa de um código de convite.</p>
+              <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Esta é uma sala privada. Você precisa de um código de convite.</p>
             )}
                   <button
                     onClick={handleJoinRoom}
                     disabled={joining || room.visibility === "private"}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all button-press hover-lift shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md disabled:hover:scale-100"
+                    className="btn-violet hover-lift disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {joining ? "Entrando..." : room.visibility === "private" ? "Use o link de convite" : "Entrar na Sala"}
                   </button>
           </div>
         ) : (
           <>
-            <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Capítulos do Livro</h2>
-              <p className="text-gray-700">
-                Estamos no <span className="font-bold text-blue-600 text-lg">Capítulo {currentChapter}</span> de {room.totalChapters}
+            <div className="mb-8 card-premium p-6">
+              <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Capítulos do Livro</h2>
+              <p style={{ color: 'var(--text-secondary)' }}>
+                Estamos no <span className="font-bold text-lg" style={{ color: 'var(--accent-violet)' }}>Capítulo {currentChapter}</span> de {room.totalChapters}
               </p>
             </div>
 
@@ -243,6 +291,7 @@ export default function RoomPage() {
               {chapters.map((chapterNum) => {
                 const unlocked = isChapterUnlocked(room.startDate, chapterNum);
                 const isToday = chapterNum === currentChapter;
+                const isRead = readChapters.has(chapterNum);
                 return (
                   <Link
                     key={chapterNum}
@@ -250,23 +299,52 @@ export default function RoomPage() {
                     className={`relative p-4 rounded-xl border-2 transition-all text-center smooth-transition ${
                       unlocked
                         ? isToday
-                          ? "bg-blue-50 border-blue-400 hover:border-blue-500 hover:shadow-lg cursor-pointer ring-2 ring-blue-200 hover-lift hover-glow"
-                          : "bg-white border-blue-200 hover:border-blue-400 hover:shadow-md cursor-pointer hover-lift"
-                        : "bg-gray-50 border-gray-200 cursor-not-allowed opacity-50"
+                          ? "hover-lift hover-glow cursor-pointer"
+                          : "hover-lift cursor-pointer"
+                        : "cursor-not-allowed opacity-50"
                     }`}
+                    style={
+                      unlocked
+                        ? isToday
+                          ? {
+                              background: 'var(--bg-secondary)',
+                              borderColor: 'var(--accent-violet)',
+                              boxShadow: '0 0 0 2px rgba(169, 139, 255, 0.2)'
+                            }
+                          : isRead
+                          ? {
+                              background: 'var(--bg-secondary)',
+                              borderColor: 'var(--accent-emerald)'
+                            }
+                          : {
+                              background: 'var(--bg-card)',
+                              borderColor: 'var(--border-medium)'
+                            }
+                        : {
+                            background: 'var(--bg-tertiary)',
+                            borderColor: 'var(--border-subtle)'
+                          }
+                    }
                   >
                     <div className="flex flex-col items-center gap-1">
                       {unlocked ? (
-                        <BookOpen className={`w-5 h-5 ${isToday ? "text-blue-600" : "text-gray-600"}`} />
+                        isRead ? (
+                          <div className="relative">
+                            <div className="absolute inset-0 rounded-full" style={{ background: 'var(--accent-emerald)', opacity: 0.2 }} />
+                            <CheckCircle className="w-5 h-5 relative z-10" style={{ color: 'var(--accent-emerald)' }} />
+                          </div>
+                        ) : (
+                          <BookOpen className="w-5 h-5" style={{ color: isToday ? 'var(--accent-violet)' : 'var(--text-secondary)' }} />
+                        )
                       ) : (
-                        <Lock className="w-5 h-5 text-gray-400" />
+                        <Lock className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
                       )}
-                      <span className={`font-bold text-lg ${isToday ? "text-blue-700" : "text-gray-900"}`}>
+                      <span className="font-bold text-lg" style={{ color: isToday ? 'var(--accent-violet)' : isRead ? 'var(--accent-emerald)' : 'var(--text-primary)' }}>
                         {chapterNum}
                       </span>
                     </div>
                     {isToday && (
-                      <div className="absolute -top-1.5 -right-1.5 bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full font-semibold shadow-md">
+                      <div className="absolute -top-1.5 -right-1.5 text-white text-xs px-1.5 py-0.5 rounded-full font-semibold shadow-md" style={{ background: 'var(--accent-violet)' }}>
                         Hoje
                       </div>
                     )}
@@ -280,10 +358,10 @@ export default function RoomPage() {
 
           {/* Modal de Convite */}
           {showInviteModal && room?.inviteCode && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
-              <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 animate-bounce-in shadow-2xl">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Compartilhar Sala</h3>
-            <p className="text-gray-600 mb-4">
+            <div className="fixed inset-0 flex items-center justify-center z-50 animate-fade-in" style={{ background: 'rgba(0, 0, 0, 0.5)' }}>
+              <div className="card-premium p-6 max-w-md w-full mx-4 animate-bounce-in shadow-2xl">
+            <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Compartilhar Sala</h3>
+            <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
               Compartilhe este link para convidar pessoas para a sala:
             </p>
             <div className="flex items-center gap-2 mb-4">
@@ -291,21 +369,30 @@ export default function RoomPage() {
                 type="text"
                 readOnly
                 value={`${typeof window !== "undefined" ? window.location.origin : ""}/room/${roomId}?invite=${room.inviteCode}`}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900"
+                className="flex-1 px-4 py-2 rounded-lg border"
+                style={{
+                  background: 'var(--bg-secondary)',
+                  borderColor: 'var(--border-subtle)',
+                  color: 'var(--text-primary)'
+                }}
               />
                   <button
                     onClick={handleCopyInviteLink}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all button-press hover-lift shadow-md hover:shadow-lg"
+                    className="flex items-center gap-2 btn-violet hover-lift"
                   >
                     {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   </button>
             </div>
-            <p className="text-sm text-gray-500 mb-4">
-              Código de convite: <span className="font-mono font-bold">{room.inviteCode}</span>
+            <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+              Código de convite: <span className="font-mono font-bold" style={{ color: 'var(--accent-violet)' }}>{room.inviteCode}</span>
             </p>
                 <button
                   onClick={() => setShowInviteModal(false)}
-                  className="w-full bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all button-press"
+                  className="w-full px-4 py-2 rounded-lg transition-all button-press hover-lift"
+                  style={{
+                    background: 'var(--bg-tertiary)',
+                    color: 'var(--text-secondary)'
+                  }}
                 >
                   Fechar
                 </button>

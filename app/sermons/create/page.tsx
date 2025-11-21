@@ -75,30 +75,31 @@ export default function CreateSermonPage() {
   const today = new Date().toISOString().split("T")[0];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
+    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+      <header className="sticky top-0 z-10" style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-subtle)' }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link
             href="/sermons"
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+            className="inline-flex items-center gap-2 mb-4 hover-lift"
+            style={{ color: 'var(--text-secondary)' }}
           >
             <ArrowLeft className="w-5 h-5" />
             Voltar
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Criar Novo Sermão</h1>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Criar Novo Sermão</h1>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6 animate-fade-in">
+        <form onSubmit={handleSubmit} className="card-premium p-6 space-y-6 animate-fade-in">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            <div className="p-3 rounded-lg text-sm" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
               {error}
             </div>
           )}
 
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="title" className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
               Título do Sermão
             </label>
             <input
@@ -107,13 +108,18 @@ export default function CreateSermonPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-xl border transition-all"
+              style={{
+                background: 'var(--bg-secondary)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)'
+              }}
               placeholder="Ex: O Amor de Deus"
             />
           </div>
 
           <div>
-            <label htmlFor="passage" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="passage" className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
               Passagem Bíblica
             </label>
             <input
@@ -122,16 +128,21 @@ export default function CreateSermonPage() {
               value={passage}
               onChange={(e) => setPassage(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-xl border transition-all"
+              style={{
+                background: 'var(--bg-secondary)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)'
+              }}
               placeholder="Ex: João 3:16 ou João 3:16-21"
             />
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm" style={{ color: 'var(--text-muted)' }}>
               Digite a referência bíblica (livro, capítulo e versículos)
             </p>
           </div>
 
           <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="date" className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
               Data do Sermão
             </label>
             <input
@@ -140,9 +151,14 @@ export default function CreateSermonPage() {
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-xl border transition-all"
+              style={{
+                background: 'var(--bg-secondary)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)'
+              }}
             />
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm" style={{ color: 'var(--text-muted)' }}>
               Data em que o sermão será ou foi pregado
             </p>
           </div>
@@ -150,7 +166,7 @@ export default function CreateSermonPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-purple-700 transition-all button-press hover-lift shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md disabled:hover:scale-100 flex items-center justify-center gap-2"
+            className="w-full btn-violet hover-lift disabled:opacity-50 flex items-center justify-center gap-2"
           >
             <Save className="w-5 h-5" />
             {loading ? "Criando..." : "Criar Sermão"}

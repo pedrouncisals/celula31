@@ -20,8 +20,11 @@ import { Room, Summary, Comment } from "@/types";
 import { calculateCurrentChapter, isChapterUnlocked, canEditSummary } from "@/lib/utils";
 import { getBibleChapter } from "@/lib/bible";
 import { getChapterHighlights } from "@/lib/highlights";
+import { getChapterHighlights as getVerseHighlights, saveVerseHighlight, removeVerseHighlight } from "@/lib/verse-highlights";
+import type { VerseHighlight } from "@/lib/verse-highlights";
+import { autoMarkChapterAsRead } from "@/lib/reading-plans";
 import Link from "next/link";
-import { ArrowLeft, Heart, MessageCircle, Send, Edit2, Trash2, BookOpen } from "lucide-react";
+import { ArrowLeft, Heart, MessageCircle, Send, Edit2, Trash2, BookOpen, ChevronRight, Highlighter, X, CheckCircle2, BookMarked } from "lucide-react";
 
 // Função para calcular blocos de versículos
 function getVerseBlocks(verses: { [verse: string]: string }): Array<{ block: number; startVerse: number; endVerse: number; verses: { [verse: string]: string } }> {
@@ -72,6 +75,13 @@ export default function ChapterPage() {
   const [commentText, setCommentText] = useState("");
   const [editingSummary, setEditingSummary] = useState<string | null>(null);
   const [selectedBlock, setSelectedBlock] = useState<number | null>(null);
+  const [likingInProgress, setLikingInProgress] = useState<Set<string>>(new Set());
+  const [verseHighlights, setVerseHighlights] = useState<Map<number, VerseHighlight["color"]>>(new Map());
+  const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
+  const [showHighlightMenu, setShowHighlightMenu] = useState(false);
+  const [highlightingVerse, setHighlightingVerse] = useState<number | null>(null);
+  const [touchStart, setTouchStart] = useState<{ verse: number; time: number } | null>(null);
+  const [notification, setNotification] = useState<{ message: string; plans: string[] } | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -122,6 +132,19 @@ export default function ChapterPage() {
       const blocks = getVerseBlocks(text);
       setVerseBlocks(blocks);
 
+      // Marcar automaticamente em planos de leitura ativos
+      if (user) {
+        const updatedPlans = await autoMarkChapterAsRead(user.id, roomData.book, chapterNum);
+        if (updatedPlans.length > 0) {
+          setNotification({
+            message: `Capítulo marcado como lido em ${updatedPlans.length} plano${updatedPlans.length > 1 ? "s" : ""}!`,
+            plans: updatedPlans
+          });
+          // Remover notificação após 5 segundos
+          setTimeout(() => setNotification(null), 5000);
+        }
+      }
+
       // Carregar resumos
       await loadSummaries();
 
@@ -131,6 +154,12 @@ export default function ChapterPage() {
       // Carregar destaques
       const chapterHighlights = await getChapterHighlights(roomId, chapterNum);
       setHighlights(chapterHighlights);
+
+      // Carregar highlights pessoais de versículos
+      if (user) {
+        const personalHighlights = await getVerseHighlights(user.id, roomId, roomData.book, chapterNum);
+        setVerseHighlights(personalHighlights);
+      }
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
@@ -161,6 +190,7 @@ export default function ChapterPage() {
           endVerse: data.endVerse || 10,
           authorName: authorData?.name || "Usuário",
           authorPhoto: authorData?.photoUrl || "",
+          authorFavoriteVerse: authorData?.favoriteVerse || "",
         } as Summary);
       }
 
@@ -197,6 +227,7 @@ export default function ChapterPage() {
           ...data,
           authorName: authorData?.name || "Usuário",
           authorPhoto: authorData?.photoUrl || "",
+          authorFavoriteVerse: authorData?.favoriteVerse || "",
         } as Comment);
       }
 
@@ -295,11 +326,17 @@ export default function ChapterPage() {
   const handleLikeSummary = async (summaryId: string) => {
     if (!user) return;
 
+    // Prevenir múltiplos cliques simultâneos
+    if (likingInProgress.has(summaryId)) return;
+
     const summary = summaries.find(s => s.id === summaryId);
     if (!summary) return;
 
     // Verificar se já curtiu
     const alreadyLiked = summary.likedBy?.includes(user.id) || false;
+
+    // Marcar como em progresso
+    setLikingInProgress(prev => new Set(prev).add(summaryId));
 
     try {
       const summaryRef = doc(db, "rooms", roomId, "summaries", summaryId);
@@ -321,6 +358,13 @@ export default function ChapterPage() {
       await loadSummaries();
     } catch (error) {
       console.error("Error liking summary:", error);
+    } finally {
+      // Remover do progresso
+      setLikingInProgress(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(summaryId);
+        return newSet;
+      });
     }
   };
 
@@ -367,12 +411,129 @@ export default function ChapterPage() {
       setApplication("");
       setEditingSummary(null);
     }
+
+    // Scroll automático para o formulário no mobile
+    setTimeout(() => {
+      const formElement = document.getElementById(`summary-form-${block}`);
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 100);
+  };
+
+  const handleVerseLongPress = (verseNum: number) => {
+    if (!user || !room) return;
+    setSelectedVerse(verseNum);
+    setShowHighlightMenu(true);
+    setHighlightingVerse(verseNum);
+  };
+
+  const handleVerseClick = (verseNum: number) => {
+    // No mobile, apenas mostra o menu se já estiver destacado
+    if (verseHighlights.has(verseNum)) {
+      handleVerseLongPress(verseNum);
+    }
+  };
+
+  // Touch handlers para mobile
+  const handleTouchStart = (verseNum: number) => {
+    setTouchStart({ verse: verseNum, time: Date.now() });
+  };
+
+  const handleTouchEnd = (verseNum: number) => {
+    if (!touchStart || touchStart.verse !== verseNum) return;
+    
+    const pressDuration = Date.now() - touchStart.time;
+    if (pressDuration > 500) { // 500ms = toque longo
+      handleVerseLongPress(verseNum);
+    }
+    setTouchStart(null);
+  };
+
+  const handleHighlightVerse = async (verseNum: number, color: VerseHighlight["color"]) => {
+    if (!user || !room) return;
+
+    try {
+      const isHighlighted = verseHighlights.has(verseNum);
+      const currentColor = verseHighlights.get(verseNum);
+      
+      if (isHighlighted && currentColor === color) {
+        // Remover highlight se já está destacado com a mesma cor
+        await removeVerseHighlight(user.id, roomId, room.book, chapterNum, verseNum);
+        const newMap = new Map(verseHighlights);
+        newMap.delete(verseNum);
+        setVerseHighlights(newMap);
+      } else {
+        // Adicionar ou alterar highlight
+        await saveVerseHighlight(user.id, roomId, room.book, chapterNum, verseNum, color);
+        const newMap = new Map(verseHighlights);
+        newMap.set(verseNum, color);
+        setVerseHighlights(newMap);
+      }
+    } catch (error) {
+      console.error("Error highlighting verse:", error);
+      alert("Erro ao destacar versículo. Tente novamente.");
+    } finally {
+      setShowHighlightMenu(false);
+      setSelectedVerse(null);
+      setHighlightingVerse(null);
+    }
+  };
+
+  const getNextChapter = () => {
+    if (!room) return null;
+    const nextChapter = chapterNum + 1;
+    if (nextChapter > room.totalChapters) return null;
+    if (!isChapterUnlocked(room.startDate, nextChapter)) return null;
+    return nextChapter;
+  };
+
+  const getPrevChapter = () => {
+    if (!room) return null;
+    const prevChapter = chapterNum - 1;
+    if (prevChapter < 1) return null;
+    if (!isChapterUnlocked(room.startDate, prevChapter)) return null;
+    return prevChapter;
+  };
+
+  const getHighlightColor = (verseNum: number): { bg: string; border: string; text: string } | null => {
+    const color = verseHighlights.get(verseNum);
+    if (!color) return null;
+    
+    const colors: Record<string, { bg: string; border: string; text: string }> = {
+      yellow: { 
+        bg: "rgba(234, 179, 8, 0.15)", 
+        border: "rgba(234, 179, 8, 0.5)",
+        text: "rgba(234, 179, 8, 0.9)"
+      },
+      green: { 
+        bg: "rgba(34, 197, 94, 0.15)", 
+        border: "rgba(34, 197, 94, 0.5)",
+        text: "rgba(34, 197, 94, 0.9)"
+      },
+      blue: { 
+        bg: "rgba(59, 130, 246, 0.15)", 
+        border: "rgba(59, 130, 246, 0.5)",
+        text: "rgba(59, 130, 246, 0.9)"
+      },
+      pink: { 
+        bg: "rgba(236, 72, 153, 0.15)", 
+        border: "rgba(236, 72, 153, 0.5)",
+        text: "rgba(236, 72, 153, 0.9)"
+      },
+      purple: { 
+        bg: "rgba(168, 85, 247, 0.15)", 
+        border: "rgba(168, 85, 247, 0.5)",
+        text: "rgba(168, 85, 247, 0.9)"
+      },
+    };
+    return colors[color] || null;
   };
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-gray-700">Carregando...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+        <div style={{ color: 'var(--text-secondary)' }}>Carregando...</div>
       </div>
     );
   }
@@ -383,53 +544,81 @@ export default function ChapterPage() {
 
   if (!chapterText || verseBlocks.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-gray-700">Carregando capítulo...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+        <div style={{ color: 'var(--text-secondary)' }}>Carregando capítulo...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+      <header className="sticky top-0 z-10 backdrop-blur-md" style={{ background: 'rgba(22, 22, 35, 0.95)', borderBottom: '1px solid var(--border-subtle)' }}>
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
           <Link
             href={`/room/${roomId}`}
-            className="inline-flex items-center gap-2 text-gray-700 hover:text-gray-900 mb-4"
+            className="inline-flex items-center gap-2 mb-3 sm:mb-4 hover-lift touch-target px-2 -ml-2"
+            style={{ color: 'var(--text-secondary)' }}
           >
             <ArrowLeft className="w-5 h-5" />
-            Voltar
+            <span className="hidden sm:inline">Voltar à Sala</span>
+            <span className="sm:hidden">Voltar</span>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {room.book} - Capítulo {chapterNum}
-          </h1>
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h1 className="text-xl sm:text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+              {room.book} - Cap. {chapterNum}
+            </h1>
+            <div className="flex items-center gap-2">
+              {getPrevChapter() && (
+                <Link
+                  href={`/room/${roomId}/chapter/${getPrevChapter()}`}
+                  className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg hover-lift transition-all touch-target"
+                  style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span className="hidden sm:inline">Anterior</span>
+                </Link>
+              )}
+              {getNextChapter() && (
+                <Link
+                  href={`/room/${roomId}/chapter/${getNextChapter()}`}
+                  className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg btn-violet hover-lift touch-target"
+                >
+                  <span className="hidden sm:inline">Próximo</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              )}
+            </div>
+          </div>
+          <p className="text-xs sm:text-sm" style={{ color: 'var(--text-muted)' }}>
+            Toque e segure um versículo para destacar
+          </p>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* Texto do Capítulo dividido em blocos */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Texto Bíblico</h2>
-            <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">NVI</span>
+        <section className="card-premium p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Texto Bíblico</h2>
+            <span className="text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full" style={{ background: 'var(--bg-tertiary)', color: 'var(--text-muted)' }}>NVI</span>
           </div>
           
-          <div className="space-y-8">
+          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
             {verseBlocks.map((block) => {
               const blockSummaries = summaries.filter(s => s.verseBlock === block.block);
               const userBlockSummary = blockSummaries.find(s => s.authorId === user.id);
               
               return (
-                <div key={block.block} className="border-b border-gray-200 pb-8 last:border-b-0 last:pb-0">
+                <div key={block.block} className="border-b pb-4 sm:pb-6 lg:pb-8 last:border-b-0 last:pb-0" style={{ borderColor: 'var(--border-subtle)' }}>
                   {/* Cabeçalho do bloco */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg font-semibold">
-                        <BookOpen className="w-4 h-4 inline mr-1" />
-                        Bloco {block.block}: Versículos {block.startVerse}-{block.endVerse}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3 sm:mb-4">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                      <div className="px-2 sm:px-3 py-1 rounded-lg font-semibold text-xs sm:text-sm" style={{ background: 'var(--gradient-violet)', color: 'white' }}>
+                        <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
+                        Bloco {block.block}: {block.startVerse}-{block.endVerse}
                       </div>
                       {blockSummaries.length > 0 && (
-                        <span className="text-sm text-gray-600">
+                        <span className="text-xs sm:text-sm" style={{ color: 'var(--text-secondary)' }}>
                           {blockSummaries.length} resumo{blockSummaries.length !== 1 ? "s" : ""}
                         </span>
                       )}
@@ -437,7 +626,7 @@ export default function ChapterPage() {
                     {!userBlockSummary && (
                       <button
                         onClick={() => openSummaryForm(block.block)}
-                        className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all button-press hover-lift shadow-md hover:shadow-lg"
+                        className="text-xs sm:text-sm btn-emerald hover-lift touch-target px-3 sm:px-4 self-start sm:self-auto"
                       >
                         Escrever Resumo
                       </button>
@@ -445,32 +634,94 @@ export default function ChapterPage() {
                   </div>
 
                   {/* Versículos do bloco */}
-                  <div className="bg-gray-50 rounded-lg p-6 border border-gray-100 mb-4">
-                    {Object.entries(block.verses).map(([verse, text]) => (
-                      <p key={verse} className="mb-3 text-gray-800 leading-relaxed text-base">
-                        <span className="font-bold text-blue-600 mr-2">{verse}</span>
-                        <span className="text-gray-900">{text}</span>
-                      </p>
-                    ))}
+                  <div className="rounded-lg p-3 sm:p-4 lg:p-6 mb-3 sm:mb-4" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                    {Object.entries(block.verses).map(([verse, text]) => {
+                      const verseNum = parseInt(verse);
+                      const highlight = getHighlightColor(verseNum);
+                      const isHighlighted = !!highlight;
+                      return (
+                        <div
+                          key={verse}
+                          className="mb-1.5 sm:mb-2 leading-relaxed relative group"
+                        >
+                          <p 
+                            className="text-sm sm:text-base verse-text touch-target transition-all rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 relative"
+                            onClick={() => handleVerseClick(verseNum)}
+                            onTouchStart={() => handleTouchStart(verseNum)}
+                            onTouchEnd={() => handleTouchEnd(verseNum)}
+                            style={{ 
+                              color: highlight?.text || 'var(--text-secondary)',
+                              backgroundColor: highlight?.bg || 'transparent',
+                              borderLeft: highlight ? `3px solid ${highlight.border}` : 'none',
+                              border: highlight ? `1px solid ${highlight.border}` : 'none',
+                              minHeight: '36px',
+                              paddingLeft: highlight ? '12px' : '8px',
+                              paddingRight: '8px',
+                              lineHeight: '1.6'
+                            }}
+                          >
+                            <span 
+                              className="verse-number font-semibold mr-2 sm:mr-3 inline-block align-top" 
+                              style={{ 
+                                color: highlight?.text || 'var(--accent-violet)', 
+                                minWidth: '36px',
+                                fontWeight: '600'
+                              }}
+                            >
+                              {verse}
+                            </span>
+                            <span className="inline-block flex-1">{text}</span>
+                          </p>
+                          {/* Botão de highlight - apenas quando não está destacado */}
+                          {!isHighlighted && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleVerseLongPress(verseNum);
+                              }}
+                              className="absolute right-2 top-2 sm:right-3 sm:top-3 opacity-0 group-hover:opacity-100 md:opacity-0 transition-opacity p-2 rounded-lg hover-lift touch-target"
+                              style={{ 
+                                background: 'var(--bg-tertiary)',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                                zIndex: 10
+                              }}
+                              title="Destacar versículo"
+                            >
+                              <Highlighter className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: 'var(--accent-gold)' }} />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
 
                   {/* Formulário de resumo para este bloco */}
                   {showSummaryForm === block.block && (
-                    <form onSubmit={handleSubmitSummary} className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200 space-y-4 animate-slide-in">
+                    <form 
+                      id={`summary-form-${block.block}`}
+                      onSubmit={handleSubmitSummary} 
+                      className="mb-4 p-4 rounded-lg space-y-4 animate-slide-in"
+                      style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-medium)' }}
+                    >
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
                           Título (opcional)
                         </label>
                         <input
                           type="text"
                           value={summaryTitle}
                           onChange={(e) => setSummaryTitle(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                          className="w-full px-4 py-2 rounded-lg border transition-all"
+                          style={{
+                            background: 'var(--bg-tertiary)',
+                            borderColor: 'var(--border-subtle)',
+                            color: 'var(--text-primary)'
+                          }}
                           placeholder="Título do resumo"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
                           Resumo (máx. 500 caracteres)
                         </label>
                         <textarea
@@ -479,13 +730,18 @@ export default function ChapterPage() {
                           required
                           maxLength={500}
                           rows={4}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                          className="w-full px-4 py-2 rounded-lg border transition-all"
+                          style={{
+                            background: 'var(--bg-tertiary)',
+                            borderColor: 'var(--border-subtle)',
+                            color: 'var(--text-primary)'
+                          }}
                           placeholder="Escreva seu resumo aqui..."
                         />
-                        <p className="text-sm text-gray-500 mt-1">{summaryText.length}/500</p>
+                        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{summaryText.length}/500</p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
                           Aplicação Prática (máx. 300 caracteres)
                         </label>
                         <textarea
@@ -494,15 +750,20 @@ export default function ChapterPage() {
                           required
                           maxLength={300}
                           rows={3}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                          className="w-full px-4 py-2 rounded-lg border transition-all"
+                          style={{
+                            background: 'var(--bg-tertiary)',
+                            borderColor: 'var(--border-subtle)',
+                            color: 'var(--text-primary)'
+                          }}
                           placeholder="Como você pode aplicar isso na sua vida?"
                         />
-                        <p className="text-sm text-gray-500 mt-1">{application.length}/300</p>
+                        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{application.length}/300</p>
                       </div>
                           <div className="flex gap-2">
                             <button
                               type="submit"
-                              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all button-press hover-lift shadow-md hover:shadow-lg"
+                              className="btn-emerald hover-lift"
                             >
                               {editingSummary ? "Salvar Alterações" : "Publicar Resumo"}
                             </button>
@@ -516,7 +777,11 @@ export default function ChapterPage() {
                                 setSummaryText("");
                                 setApplication("");
                               }}
-                              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all button-press"
+                              className="px-4 py-2 rounded-lg transition-all button-press hover-lift"
+                              style={{
+                                background: 'var(--bg-tertiary)',
+                                color: 'var(--text-secondary)'
+                              }}
                             >
                               Cancelar
                             </button>
@@ -530,7 +795,7 @@ export default function ChapterPage() {
                       {blockSummaries.map((summary) => (
                         <div
                           key={summary.id}
-                          className="p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow hover-lift animate-fade-in"
+                          className="p-4 rounded-lg hover-lift animate-fade-in card-premium"
                         >
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-2">
@@ -542,23 +807,31 @@ export default function ChapterPage() {
                                 />
                               )}
                               <div>
-                                <p className="font-semibold text-gray-900">{summary.authorName}</p>
-                                <p className="text-sm text-gray-500">
+                                <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{summary.authorName}</p>
+                                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
                                   {new Date(summary.createdAt).toLocaleDateString("pt-BR")}
                                 </p>
+                                {summary.authorFavoriteVerse && (
+                                  <p className="text-xs italic mt-1 flex items-center gap-1" style={{ color: 'var(--accent-violet)' }}>
+                                    <BookMarked className="w-3 h-3" />
+                                    "{summary.authorFavoriteVerse}"
+                                  </p>
+                                )}
                               </div>
                             </div>
                             {summary.authorId === user.id && canEditSummary(summary.createdAt) && (
                               <div className="flex gap-2">
                                 <button
                                   onClick={() => handleEditSummary(summary)}
-                                  className="text-blue-600 hover:text-blue-700"
+                                  className="hover-lift"
+                                  style={{ color: 'var(--accent-violet)' }}
                                 >
                                   <Edit2 className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteSummary(summary.id)}
-                                  className="text-red-600 hover:text-red-700"
+                                  className="hover-lift"
+                                  style={{ color: '#ef4444' }}
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -566,25 +839,30 @@ export default function ChapterPage() {
                             )}
                           </div>
                           {summary.title && (
-                            <h3 className="font-semibold text-gray-900 mb-2">{summary.title}</h3>
+                            <h3 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>{summary.title}</h3>
                           )}
-                          <p className="text-gray-700 mb-2">{summary.summary}</p>
-                          <div className="bg-blue-50 p-3 rounded-lg mb-2">
-                            <p className="text-sm font-medium text-blue-900 mb-1">Aplicação Prática:</p>
-                            <p className="text-sm text-blue-800">{summary.application}</p>
+                          <p className="mb-2" style={{ color: 'var(--text-secondary)' }}>{summary.summary}</p>
+                          <div className="p-3 rounded-lg mb-2" style={{ background: 'var(--bg-secondary)', borderLeft: '3px solid var(--accent-emerald)' }}>
+                            <p className="text-sm font-medium mb-1" style={{ color: 'var(--accent-emerald)' }}>Aplicação Prática:</p>
+                            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{summary.application}</p>
                           </div>
                               <button
                                 onClick={() => handleLikeSummary(summary.id)}
-                                className={`flex items-center gap-2 transition-all button-press hover:scale-110 ${
+                                disabled={likingInProgress.has(summary.id)}
+                                className={`flex items-center gap-2 transition-all button-press hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed ${
                                   summary.likedBy?.includes(user.id)
-                                    ? "text-red-600 hover:text-red-700"
-                                    : "text-gray-600 hover:text-red-600"
+                                    ? ""
+                                    : ""
                                 }`}
+                                style={{
+                                  color: summary.likedBy?.includes(user.id) ? '#ef4444' : 'var(--text-muted)'
+                                }}
+                                aria-label={summary.likedBy?.includes(user.id) ? "Remover curtida" : "Curtir"}
                               >
                             <Heart 
-                              className={`w-5 h-5 ${summary.likedBy?.includes(user.id) ? "fill-current" : ""}`} 
+                              className={`w-5 h-5 ${summary.likedBy?.includes(user.id) ? "fill-current" : ""} ${likingInProgress.has(summary.id) ? "animate-pulse" : ""}`} 
                             />
-                            <span className="text-gray-900">{summary.likes}</span>
+                            <span style={{ color: 'var(--text-primary)' }}>{summary.likes}</span>
                           </button>
                         </div>
                       ))}
@@ -597,13 +875,13 @@ export default function ChapterPage() {
         </section>
 
         {/* Comentários */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <section className="card-premium p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Discussão</h2>
+            <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Discussão</h2>
               {!showCommentForm && (
                   <button
                     onClick={() => setShowCommentForm(true)}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all button-press hover-lift shadow-md hover:shadow-lg"
+                    className="flex items-center gap-2 btn-violet hover-lift"
                   >
                     <MessageCircle className="w-5 h-5" />
                     Comentar
@@ -618,13 +896,18 @@ export default function ChapterPage() {
                 onChange={(e) => setCommentText(e.target.value)}
                 required
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 mb-2 text-gray-900 bg-white"
+                className="w-full px-4 py-2 rounded-lg border transition-all mb-2"
+                style={{
+                  background: 'var(--bg-secondary)',
+                  borderColor: 'var(--border-subtle)',
+                  color: 'var(--text-primary)'
+                }}
                 placeholder="Escreva seu comentário..."
               />
                   <div className="flex gap-2">
                     <button
                       type="submit"
-                      className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all button-press hover-lift shadow-md hover:shadow-lg"
+                      className="flex items-center gap-2 btn-violet hover-lift"
                     >
                       <Send className="w-4 h-4" />
                       Enviar
@@ -635,7 +918,11 @@ export default function ChapterPage() {
                         setShowCommentForm(false);
                         setCommentText("");
                       }}
-                      className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all button-press"
+                      className="px-4 py-2 rounded-lg transition-all button-press hover-lift"
+                      style={{
+                        background: 'var(--bg-tertiary)',
+                        color: 'var(--text-secondary)'
+                      }}
                     >
                       Cancelar
                     </button>
@@ -644,11 +931,11 @@ export default function ChapterPage() {
           )}
 
           {comments.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">Nenhum comentário ainda. Inicie a discussão!</p>
+            <p className="text-center py-8" style={{ color: 'var(--text-muted)' }}>Nenhum comentário ainda. Inicie a discussão!</p>
           ) : (
             <div className="space-y-4">
               {comments.map((comment) => (
-                <div key={comment.id} className="p-4 border border-gray-200 rounded-lg">
+                <div key={comment.id} className="p-4 rounded-lg card-premium">
                   <div className="flex items-center gap-2 mb-2">
                     {comment.authorPhoto && (
                       <img
@@ -658,19 +945,98 @@ export default function ChapterPage() {
                       />
                     )}
                     <div>
-                      <p className="font-semibold text-gray-900">{comment.authorName}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{comment.authorName}</p>
+                      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
                         {new Date(comment.createdAt).toLocaleDateString("pt-BR")}
                       </p>
+                      {comment.authorFavoriteVerse && (
+                        <p className="text-xs italic mt-1 flex items-center gap-1" style={{ color: 'var(--accent-violet)' }}>
+                          <BookMarked className="w-3 h-3" />
+                          "{comment.authorFavoriteVerse}"
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <p className="text-gray-700">{comment.message}</p>
+                  <p style={{ color: 'var(--text-secondary)' }}>{comment.message}</p>
                 </div>
               ))}
             </div>
           )}
         </section>
       </main>
+
+      {/* Notificação de Plano Atualizado */}
+      {notification && (
+        <div className="fixed bottom-4 right-4 z-50 animate-slide-in">
+          <div className="card-premium p-4 max-w-sm shadow-2xl">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent-green)' }} />
+              <div className="flex-1">
+                <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                  {notification.message}
+                </p>
+                {notification.plans.length > 0 && (
+                  <ul className="mt-2 space-y-1">
+                    {notification.plans.map((planName, idx) => (
+                      <li key={idx} className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                        • {planName}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <button
+                onClick={() => setNotification(null)}
+                className="hover-lift ml-2"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Menu de Highlight */}
+      {showHighlightMenu && selectedVerse && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in" onClick={() => setShowHighlightMenu(false)}>
+          <div className="card-premium p-4 animate-bounce-in" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Destacar Versículo {selectedVerse}</h3>
+              <button
+                onClick={() => setShowHighlightMenu(false)}
+                className="hover-lift"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {(["yellow", "green", "blue", "pink", "purple"] as VerseHighlight["color"][]).map((color) => {
+                const isActive = verseHighlights.get(selectedVerse) === color;
+                const colorClasses = {
+                  yellow: "bg-yellow-500",
+                  green: "bg-green-500",
+                  blue: "bg-blue-500",
+                  pink: "bg-pink-500",
+                  purple: "bg-purple-500",
+                };
+                return (
+                  <button
+                    key={color}
+                    onClick={() => handleHighlightVerse(selectedVerse, color)}
+                    className={`w-12 h-12 rounded-lg transition-all hover:scale-110 ${colorClasses[color]} ${isActive ? "ring-2 ring-white" : ""}`}
+                    title={isActive ? "Remover destaque" : `Destacar em ${color}`}
+                  />
+                );
+              })}
+            </div>
+            <p className="text-xs mt-3" style={{ color: 'var(--text-muted)' }}>
+              {verseHighlights.has(selectedVerse) ? "Clique na cor para remover" : "Escolha uma cor para destacar"}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

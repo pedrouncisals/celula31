@@ -1,17 +1,35 @@
 {
   "name": "Célula31 - Estudo Bíblico em Comunidade",
   "short_name": "Célula31",
-  "description": "Estude a Bíblia capítulo por capítulo, escreva resumos e participe de discussões",
+  "description": "Estude a Bíblia capítulo por capítulo, escreva resumos, crie sermões e participe de discussões",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "background_color": "#0D0D19",
+  "theme_color": "#7c3aed",
   "orientation": "portrait",
+  "categories": ["education", "lifestyle", "productivity"],
   "icons": [
     {
       "src": "/favicon.ico",
-      "sizes": "any",
+      "sizes": "48x48",
       "type": "image/x-icon"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Minhas Salas",
+      "short_name": "Salas",
+      "description": "Acessar minhas salas de estudo",
+      "url": "/home",
+      "icons": [{ "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" }]
+    },
+    {
+      "name": "Criar Sermão",
+      "short_name": "Sermão",
+      "description": "Criar um novo sermão",
+      "url": "/sermons/create",
+      "icons": [{ "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" }]
     }
   ]
 }
