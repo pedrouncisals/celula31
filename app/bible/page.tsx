@@ -156,29 +156,29 @@ export default function BiblePage() {
     
     const colors: Record<string, { bg: string; border: string; text: string }> = {
       yellow: { 
-        bg: "rgba(234, 179, 8, 0.15)", 
-        border: "rgba(234, 179, 8, 0.5)",
-        text: "rgba(234, 179, 8, 0.9)"
+        bg: "rgba(234, 179, 8, 0.12)", 
+        border: "rgba(234, 179, 8, 0.4)",
+        text: "rgba(234, 179, 8, 0.95)"
       },
       green: { 
-        bg: "rgba(34, 197, 94, 0.15)", 
-        border: "rgba(34, 197, 94, 0.5)",
-        text: "rgba(34, 197, 94, 0.9)"
+        bg: "rgba(34, 197, 94, 0.12)", 
+        border: "rgba(34, 197, 94, 0.4)",
+        text: "rgba(34, 197, 94, 0.95)"
       },
       blue: { 
-        bg: "rgba(59, 130, 246, 0.15)", 
-        border: "rgba(59, 130, 246, 0.5)",
-        text: "rgba(59, 130, 246, 0.9)"
+        bg: "rgba(59, 130, 246, 0.12)", 
+        border: "rgba(59, 130, 246, 0.4)",
+        text: "rgba(59, 130, 246, 0.95)"
       },
       pink: { 
-        bg: "rgba(236, 72, 153, 0.15)", 
-        border: "rgba(236, 72, 153, 0.5)",
-        text: "rgba(236, 72, 153, 0.9)"
+        bg: "rgba(236, 72, 153, 0.12)", 
+        border: "rgba(236, 72, 153, 0.4)",
+        text: "rgba(236, 72, 153, 0.95)"
       },
       purple: { 
-        bg: "rgba(168, 85, 247, 0.15)", 
-        border: "rgba(168, 85, 247, 0.5)",
-        text: "rgba(168, 85, 247, 0.9)"
+        bg: "rgba(168, 85, 247, 0.12)", 
+        border: "rgba(168, 85, 247, 0.4)",
+        text: "rgba(168, 85, 247, 0.95)"
       },
     };
     return colors[color] || null;
@@ -212,8 +212,8 @@ export default function BiblePage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
-        <div style={{ color: 'var(--text-secondary)' }}>Carregando...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0A0A12' }}>
+        <div className="text-lg font-light tracking-wide" style={{ color: '#8B8BA3' }}>Carregando...</div>
       </div>
     );
   }
@@ -223,23 +223,30 @@ export default function BiblePage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-      <header className="sticky top-0 z-10 backdrop-blur-md" style={{ background: 'rgba(22, 22, 35, 0.95)', borderBottom: '1px solid var(--border-subtle)' }}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
+    <div className="min-h-screen" style={{ background: '#0A0A12' }}>
+      {/* Header mais minimalista e elegante */}
+      <header className="sticky top-0 z-10 backdrop-blur-xl border-b" style={{ 
+        background: 'rgba(10, 10, 18, 0.85)', 
+        borderColor: 'rgba(255, 255, 255, 0.06)',
+        boxShadow: '0 1px 0 rgba(255, 255, 255, 0.03) inset'
+      }}>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 mb-3 sm:mb-4 hover-lift touch-target px-2 -ml-2"
-            style={{ color: 'var(--text-secondary)' }}
+            className="inline-flex items-center gap-2 mb-4 group transition-all"
+            style={{ color: '#8B8BA3' }}
           >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="hidden sm:inline">Voltar</span>
-            <span className="sm:hidden">Início</span>
+            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            <span className="text-sm font-medium hidden sm:inline">Voltar</span>
+            <span className="text-sm font-medium sm:hidden">Início</span>
           </Link>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Consultar Bíblia</h1>
-              <p className="text-xs sm:text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-                {selectedBook && selectedChapter ? `${selectedBook} - Cap. ${selectedChapter}` : "Acesse qualquer capítulo da Bíblia"}
+              <h1 className="text-2xl sm:text-3xl font-light tracking-tight" style={{ color: '#F5F5F7', letterSpacing: '-0.02em' }}>
+                Consultar Bíblia
+              </h1>
+              <p className="text-sm mt-1.5 font-light" style={{ color: '#6B6B7F' }}>
+                {selectedBook && selectedChapter ? `${selectedBook} ${selectedChapter}` : "Acesse qualquer capítulo da Bíblia"}
               </p>
             </div>
             {selectedBook && selectedChapter && (
@@ -247,19 +254,45 @@ export default function BiblePage() {
                 {getPrevChapter() && (
                   <button
                     onClick={() => loadChapter(selectedBook, getPrevChapter()!)}
-                    className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg hover-lift transition-all touch-target"
-                    style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-full transition-all touch-target"
+                    style={{ 
+                      background: 'rgba(255, 255, 255, 0.05)', 
+                      color: '#B8B8C8',
+                      border: '1px solid rgba(255, 255, 255, 0.08)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                    }}
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    <span className="hidden sm:inline">Anterior</span>
+                    <span className="text-sm font-medium hidden sm:inline">Anterior</span>
                   </button>
                 )}
                 {getNextChapter() && (
                   <button
                     onClick={() => loadChapter(selectedBook, getNextChapter()!)}
-                    className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg btn-violet hover-lift touch-target"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-full transition-all touch-target"
+                    style={{ 
+                      background: 'linear-gradient(135deg, #A98BFF 0%, #8B6FDB 100%)',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      boxShadow: '0 4px 12px rgba(169, 139, 255, 0.25)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(169, 139, 255, 0.35)';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(169, 139, 255, 0.25)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
                   >
-                    <span className="hidden sm:inline">Próximo</span>
+                    <span className="text-sm font-medium hidden sm:inline">Próximo</span>
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 )}
@@ -269,92 +302,131 @@ export default function BiblePage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 md:py-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {!selectedBook ? (
           <>
-            {/* Busca e Filtros */}
-            <div className="card-premium p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 animate-fade-in">
-              <div className="space-y-3 sm:space-y-4">
+            {/* Busca e Filtros - Design mais limpo */}
+            <div className="mb-6 sm:mb-8">
+              <div className="space-y-4">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5" style={{ color: 'var(--text-muted)' }} />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: '#6B6B7F' }} />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Buscar livro..."
-                    className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-xl border transition-all text-sm sm:text-base touch-target"
+                    className="w-full pl-11 pr-4 py-3.5 rounded-2xl border transition-all text-base font-light"
                     style={{
-                      background: 'var(--bg-secondary)',
-                      borderColor: 'var(--border-subtle)',
-                      color: 'var(--text-primary)'
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      borderColor: 'rgba(255, 255, 255, 0.08)',
+                      color: '#F5F5F7'
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                      e.currentTarget.style.borderColor = 'rgba(169, 139, 255, 0.3)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
                     }}
                   />
                 </div>
 
-                <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+                <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
                   <button
                     onClick={() => setTestament("all")}
-                    className={`px-3 sm:px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all hover-lift touch-target text-xs sm:text-sm ${
-                      testament === "all" ? "btn-gold" : ""
+                    className={`px-5 py-2.5 rounded-full font-medium whitespace-nowrap transition-all touch-target text-sm ${
+                      testament === "all" ? "" : ""
                     }`}
-                    style={testament !== "all" ? {
-                      background: 'var(--bg-tertiary)',
-                      color: 'var(--text-secondary)'
-                    } : {}}
+                    style={testament === "all" ? {
+                      background: 'linear-gradient(135deg, #A98BFF 0%, #8B6FDB 100%)',
+                      color: '#FFFFFF',
+                      boxShadow: '0 2px 8px rgba(169, 139, 255, 0.2)'
+                    } : {
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      color: '#B8B8C8',
+                      border: '1px solid rgba(255, 255, 255, 0.08)'
+                    }}
                   >
                     Toda a Bíblia
                   </button>
                   <button
                     onClick={() => setTestament("old")}
-                    className={`px-3 sm:px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all hover-lift touch-target text-xs sm:text-sm ${
-                      testament === "old" ? "btn-gold" : ""
+                    className={`px-5 py-2.5 rounded-full font-medium whitespace-nowrap transition-all touch-target text-sm ${
+                      testament === "old" ? "" : ""
                     }`}
-                    style={testament !== "old" ? {
-                      background: 'var(--bg-tertiary)',
-                      color: 'var(--text-secondary)'
-                    } : {}}
+                    style={testament === "old" ? {
+                      background: 'linear-gradient(135deg, #A98BFF 0%, #8B6FDB 100%)',
+                      color: '#FFFFFF',
+                      boxShadow: '0 2px 8px rgba(169, 139, 255, 0.2)'
+                    } : {
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      color: '#B8B8C8',
+                      border: '1px solid rgba(255, 255, 255, 0.08)'
+                    }}
                   >
                     Antigo Testamento
                   </button>
                   <button
                     onClick={() => setTestament("new")}
-                    className={`px-3 sm:px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all hover-lift touch-target text-xs sm:text-sm ${
-                      testament === "new" ? "btn-gold" : ""
+                    className={`px-5 py-2.5 rounded-full font-medium whitespace-nowrap transition-all touch-target text-sm ${
+                      testament === "new" ? "" : ""
                     }`}
-                    style={testament !== "new" ? {
-                      background: 'var(--bg-tertiary)',
-                      color: 'var(--text-secondary)'
-                    } : {}}
+                    style={testament === "new" ? {
+                      background: 'linear-gradient(135deg, #A98BFF 0%, #8B6FDB 100%)',
+                      color: '#FFFFFF',
+                      boxShadow: '0 2px 8px rgba(169, 139, 255, 0.2)'
+                    } : {
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      color: '#B8B8C8',
+                      border: '1px solid rgba(255, 255, 255, 0.08)'
+                    }}
                   >
                     Novo Testamento
                   </button>
                 </div>
 
-                <p className="text-xs sm:text-sm" style={{ color: 'var(--text-secondary)' }}>
+                <p className="text-sm font-light" style={{ color: '#6B6B7F' }}>
                   {filteredBooks.length} livro{filteredBooks.length !== 1 ? "s" : ""}
                 </p>
               </div>
             </div>
 
-            {/* Lista de Livros */}
+            {/* Lista de Livros - Cards mais elegantes */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {filteredBooks.map((book) => (
                 <button
                   key={book.name}
                   onClick={() => setSelectedBook(book.name)}
-                  className="card-premium p-3 sm:p-4 md:p-6 hover-lift hover-glow-gold animate-fade-in text-left touch-target"
+                  className="p-4 sm:p-5 rounded-2xl transition-all text-left touch-target group"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.borderColor = 'rgba(169, 139, 255, 0.2)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg" style={{ background: 'var(--gradient-gold)' }}>
-                        <BookOpen className="w-6 h-6" style={{ color: 'var(--bg-primary)' }} />
+                      <div className="p-2.5 rounded-xl" style={{ background: 'rgba(169, 139, 255, 0.15)' }}>
+                        <BookOpen className="w-5 h-5" style={{ color: '#A98BFF' }} />
                       </div>
                       <div>
-                        <h3 className="font-bold text-base md:text-lg" style={{ color: 'var(--text-primary)' }}>{book.name}</h3>
-                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{book.chapters} capítulos</p>
+                        <h3 className="font-semibold text-base sm:text-lg mb-0.5" style={{ color: '#F5F5F7' }}>{book.name}</h3>
+                        <p className="text-sm font-light" style={{ color: '#8B8BA3' }}>{book.chapters} capítulos</p>
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+                    <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" style={{ color: '#6B6B7F' }} />
                   </div>
                 </button>
               ))}
@@ -362,36 +434,51 @@ export default function BiblePage() {
           </>
         ) : !selectedChapter ? (
           <>
-            {/* Seleção de Capítulo */}
-            <div className="card-premium p-3 sm:p-4 md:p-6 mb-4 sm:mb-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{selectedBook}</h2>
+            {/* Seleção de Capítulo - Grid mais limpo */}
+            <div className="mb-6 sm:mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h2 className="text-2xl sm:text-3xl font-light tracking-tight" style={{ color: '#F5F5F7', letterSpacing: '-0.02em' }}>{selectedBook}</h2>
                 <button
                   onClick={() => setSelectedBook(null)}
-                  className="font-medium hover-lift btn-gold touch-target px-3 py-2 text-xs sm:text-sm self-start sm:self-auto"
+                  className="px-5 py-2.5 rounded-full font-medium transition-all touch-target text-sm self-start sm:self-auto"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: '#B8B8C8',
+                    border: '1px solid rgba(255, 255, 255, 0.08)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                  }}
                 >
                   Voltar aos livros
                 </button>
               </div>
-              <p className="mb-3 sm:mb-4 text-sm sm:text-base" style={{ color: 'var(--text-secondary)' }}>Selecione um capítulo:</p>
-              <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-2 md:gap-3">
+              <p className="mb-4 text-sm font-light" style={{ color: '#8B8BA3' }}>Selecione um capítulo:</p>
+              <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2.5">
                 {Array.from({ length: books.find(b => b.name === selectedBook)?.chapters || 0 }, (_, i) => i + 1).map((chapter) => (
                   <button
                     key={chapter}
                     onClick={() => loadChapter(selectedBook, chapter)}
-                    className="font-semibold p-2 sm:p-3 md:p-4 rounded-lg transition-all button-press hover-lift touch-target text-xs sm:text-sm md:text-base"
+                    className="font-medium py-3 rounded-xl transition-all button-press touch-target text-sm sm:text-base"
                     style={{
-                      background: 'var(--bg-tertiary)',
-                      color: 'var(--accent-gold)',
-                      border: '1px solid var(--border-subtle)'
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      color: '#B8B8C8',
+                      border: '1px solid rgba(255, 255, 255, 0.08)'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'var(--gradient-gold)';
-                      e.currentTarget.style.color = 'var(--bg-primary)';
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #A98BFF 0%, #8B6FDB 100%)';
+                      e.currentTarget.style.color = '#FFFFFF';
+                      e.currentTarget.style.borderColor = 'transparent';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(169, 139, 255, 0.25)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'var(--bg-tertiary)';
-                      e.currentTarget.style.color = 'var(--accent-gold)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+                      e.currentTarget.style.color = '#B8B8C8';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.boxShadow = 'none';
                     }}
                   >
                     {chapter}
@@ -402,16 +489,30 @@ export default function BiblePage() {
           </>
         ) : (
           <>
-            {/* Texto do Capítulo */}
-            <div className="card-premium p-3 sm:p-4 md:p-8 animate-fade-in">
-              <div className="flex items-center justify-between mb-4 sm:mb-6 flex-wrap gap-3 sm:gap-4">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                  {selectedBook} - Cap. {selectedChapter}
-                </h2>
+            {/* Texto do Capítulo - Foco total na leitura */}
+            <div className="mb-6 sm:mb-8">
+              <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-light tracking-tight mb-1" style={{ color: '#F5F5F7', letterSpacing: '-0.02em' }}>
+                    {selectedBook} {selectedChapter}
+                  </h2>
+                  <p className="text-sm font-light" style={{ color: '#6B6B7F' }}>Nova Versão Internacional</p>
+                </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setSelectedChapter(null)}
-                    className="font-medium text-sm md:text-base hover-lift btn-gold"
+                    className="px-4 py-2 rounded-full font-medium text-sm transition-all touch-target"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      color: '#B8B8C8',
+                      border: '1px solid rgba(255, 255, 255, 0.08)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                    }}
                   >
                     Outros capítulos
                   </button>
@@ -420,85 +521,106 @@ export default function BiblePage() {
                       setSelectedBook(null);
                       setSelectedChapter(null);
                     }}
-                    className="font-medium text-sm md:text-base hover-lift"
-                    style={{ color: 'var(--text-muted)' }}
+                    className="px-4 py-2 rounded-full font-medium text-sm transition-all touch-target"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      color: '#8B8BA3'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                    }}
                   >
-                    Voltar aos livros
+                    Livros
                   </button>
                 </div>
               </div>
 
               {loadingChapter ? (
-                <div className="text-center py-12">
-                  <div style={{ color: 'var(--text-secondary)' }}>Carregando capítulo...</div>
+                <div className="text-center py-16">
+                  <div className="text-base font-light" style={{ color: '#8B8BA3' }}>Carregando capítulo...</div>
                 </div>
               ) : chapterText ? (
-                <div className="space-y-3 md:space-y-4">
-                  <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+                <div className="space-y-4 sm:space-y-5">
+                  <p className="text-xs font-light mb-6 text-center" style={{ color: '#6B6B7F' }}>
                     Toque e segure um versículo para destacar
                   </p>
-                  {Object.entries(chapterText).map(([verse, text]) => {
-                    const verseNum = parseInt(verse);
-                    const highlight = getHighlightColor(verseNum);
-                    const isHighlighted = !!highlight;
-                    return (
-                      <div
-                        key={verse}
-                        className="mb-1.5 sm:mb-2 leading-relaxed relative group"
-                      >
-                        <p 
-                          className="text-sm sm:text-base md:text-lg verse-text touch-target transition-all rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 relative"
-                          onClick={() => handleVerseClick(verseNum)}
-                          onTouchStart={() => handleTouchStart(verseNum)}
-                          onTouchEnd={() => handleTouchEnd(verseNum)}
-                          style={{ 
-                            color: highlight?.text || 'var(--text-secondary)',
-                            backgroundColor: highlight?.bg || 'transparent',
-                            borderLeft: highlight ? `3px solid ${highlight.border}` : 'none',
-                            border: highlight ? `1px solid ${highlight.border}` : 'none',
-                            minHeight: '36px',
-                            paddingLeft: highlight ? '12px' : '8px',
-                            paddingRight: '8px',
-                            lineHeight: '1.6'
-                          }}
+                  <div style={{ 
+                    maxWidth: '680px', 
+                    margin: '0 auto',
+                    padding: '0 8px'
+                  }}>
+                    {Object.entries(chapterText).map(([verse, text]) => {
+                      const verseNum = parseInt(verse);
+                      const highlight = getHighlightColor(verseNum);
+                      const isHighlighted = !!highlight;
+                      return (
+                        <div
+                          key={verse}
+                          className="mb-4 sm:mb-5 leading-relaxed relative group"
+                          style={{ lineHeight: '1.75' }}
                         >
-                          <span 
-                            className="verse-number font-semibold mr-2 sm:mr-3 inline-block align-top" 
+                          <p 
+                            className="text-base sm:text-lg md:text-xl verse-text touch-target transition-all rounded-2xl px-4 sm:px-5 py-3 sm:py-4 relative"
+                            onClick={() => handleVerseClick(verseNum)}
+                            onTouchStart={() => handleTouchStart(verseNum)}
+                            onTouchEnd={() => handleTouchEnd(verseNum)}
                             style={{ 
-                              color: highlight?.text || 'var(--accent-gold)', 
-                              minWidth: '36px',
-                              fontWeight: '600'
+                              color: highlight?.text || '#E8E8ED',
+                              backgroundColor: highlight?.bg || 'transparent',
+                              borderLeft: highlight ? `4px solid ${highlight.border}` : 'none',
+                              paddingLeft: highlight ? '20px' : '16px',
+                              paddingRight: '16px',
+                              lineHeight: '1.8',
+                              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif',
+                              fontWeight: '400',
+                              letterSpacing: '0.01em'
                             }}
                           >
-                            {verse}
-                          </span>
-                          <span className="inline-block flex-1">{text}</span>
-                        </p>
-                        {/* Botão de highlight - apenas quando não está destacado */}
-                        {!isHighlighted && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleVerseLongPress(verseNum);
-                            }}
-                            className="absolute right-2 top-2 sm:right-3 sm:top-3 opacity-0 group-hover:opacity-100 md:opacity-0 transition-opacity p-2 rounded-lg hover-lift touch-target"
-                            style={{ 
-                              background: 'var(--bg-tertiary)',
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                              zIndex: 10
-                            }}
-                            title="Destacar versículo"
-                          >
-                            <Highlighter className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: 'var(--accent-gold)' }} />
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
+                            <span 
+                              className="verse-number font-semibold mr-3 sm:mr-4 inline-block align-top" 
+                              style={{ 
+                                color: highlight?.text || '#A98BFF', 
+                                minWidth: '44px',
+                                fontWeight: '600',
+                                fontSize: '0.9em',
+                                opacity: '0.85'
+                              }}
+                            >
+                              {verse}
+                            </span>
+                            <span className="inline-block flex-1" style={{ wordSpacing: '0.05em' }}>{text}</span>
+                          </p>
+                          {/* Botão de highlight - apenas quando não está destacado */}
+                          {!isHighlighted && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleVerseLongPress(verseNum);
+                              }}
+                              className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 md:opacity-0 transition-opacity p-2.5 rounded-xl hover-lift touch-target"
+                              style={{ 
+                                background: 'rgba(10, 10, 18, 0.85)',
+                                backdropFilter: 'blur(8px)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+                                zIndex: 10
+                              }}
+                              title="Destacar versículo"
+                            >
+                              <Highlighter className="w-4 h-4" style={{ color: '#A98BFF' }} />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <p style={{ color: 'var(--text-secondary)' }}>Capítulo não disponível</p>
+                <div className="text-center py-16">
+                  <p className="text-base font-light" style={{ color: '#8B8BA3' }}>Capítulo não disponível</p>
                 </div>
               )}
             </div>
@@ -506,20 +628,25 @@ export default function BiblePage() {
         )}
       </main>
 
-      {/* Notificação de Plano Atualizado */}
+      {/* Notificação de Plano Atualizado - Mais discreta */}
       {notification && (
-        <div className="fixed bottom-4 right-4 z-50 animate-slide-in">
-          <div className="card-premium p-4 max-w-sm shadow-2xl">
+        <div className="fixed bottom-6 right-6 z-50 animate-slide-in max-w-sm">
+          <div className="p-4 rounded-2xl shadow-2xl" style={{
+            background: 'rgba(20, 20, 30, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+          }}>
             <div className="flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent-green)' }} />
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#8AE6BF' }} />
               <div className="flex-1">
-                <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                <p className="font-medium text-sm mb-2" style={{ color: '#F5F5F7' }}>
                   {notification.message}
                 </p>
                 {notification.plans.length > 0 && (
-                  <ul className="mt-2 space-y-1">
+                  <ul className="space-y-1">
                     {notification.plans.map((planName, idx) => (
-                      <li key={idx} className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                      <li key={idx} className="text-xs font-light" style={{ color: '#8B8BA3' }}>
                         • {planName}
                       </li>
                     ))}
@@ -528,8 +655,14 @@ export default function BiblePage() {
               </div>
               <button
                 onClick={() => setNotification(null)}
-                className="hover-lift ml-2"
-                style={{ color: 'var(--text-muted)' }}
+                className="hover-lift ml-2 p-1 rounded-lg transition-all"
+                style={{ color: '#6B6B7F' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -538,41 +671,80 @@ export default function BiblePage() {
         </div>
       )}
 
-      {/* Menu de Highlight */}
+      {/* Menu de Highlight - Mais elegante */}
       {showHighlightMenu && selectedVerse && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in" onClick={() => setShowHighlightMenu(false)}>
-          <div className="card-premium p-4 animate-bounce-in" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Destacar Versículo {selectedVerse}</h3>
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fade-in backdrop-blur-sm" 
+          onClick={() => setShowHighlightMenu(false)}
+          style={{ background: 'rgba(0, 0, 0, 0.7)' }}
+        >
+          <div 
+            className="p-6 rounded-3xl max-w-sm w-full mx-4" 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'rgba(20, 20, 30, 0.98)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6)'
+            }}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-semibold text-lg" style={{ color: '#F5F5F7' }}>Destacar Versículo {selectedVerse}</h3>
               <button
                 onClick={() => setShowHighlightMenu(false)}
-                className="hover-lift"
-                style={{ color: 'var(--text-muted)' }}
+                className="p-2 rounded-xl transition-all"
+                style={{ 
+                  color: '#8B8BA3',
+                  background: 'rgba(255, 255, 255, 0.05)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                }}
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-3 flex-wrap justify-center">
               {(["yellow", "green", "blue", "pink", "purple"] as VerseHighlight["color"][]).map((color) => {
                 const isActive = verseHighlights.get(selectedVerse) === color;
-                const colorClasses = {
-                  yellow: "bg-yellow-500",
-                  green: "bg-green-500",
-                  blue: "bg-blue-500",
-                  pink: "bg-pink-500",
-                  purple: "bg-purple-500",
+                const colorStyles: Record<string, { bg: string; hover: string }> = {
+                  yellow: { bg: '#FACC15', hover: '#FDE047' },
+                  green: { bg: '#22C55E', hover: '#4ADE80' },
+                  blue: { bg: '#3B82F6', hover: '#60A5FA' },
+                  pink: { bg: '#EC4899', hover: '#F472B6' },
+                  purple: { bg: '#A855F7', hover: '#C084FC' },
                 };
                 return (
                   <button
                     key={color}
                     onClick={() => handleHighlightVerse(selectedVerse, color)}
-                    className={`w-12 h-12 rounded-lg transition-all hover:scale-110 ${colorClasses[color]} ${isActive ? "ring-2 ring-white" : ""}`}
+                    className="w-14 h-14 rounded-2xl transition-all touch-target"
+                    style={{
+                      background: colorStyles[color].bg,
+                      boxShadow: isActive ? `0 0 0 3px rgba(255, 255, 255, 0.3), 0 4px 12px ${colorStyles[color].bg}40` : '0 2px 8px rgba(0, 0, 0, 0.3)',
+                      transform: isActive ? 'scale(1.1)' : 'scale(1)'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = colorStyles[color].hover;
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = colorStyles[color].bg;
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }
+                    }}
                     title={isActive ? "Remover destaque" : `Destacar em ${color}`}
                   />
                 );
               })}
             </div>
-            <p className="text-xs mt-3" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-xs font-light mt-5 text-center" style={{ color: '#8B8BA3' }}>
               {verseHighlights.has(selectedVerse) ? "Clique na cor para remover" : "Escolha uma cor para destacar"}
             </p>
           </div>
