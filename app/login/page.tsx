@@ -6,6 +6,7 @@ import { signInWithEmailAndPassword, signInWithRedirect, getRedirectResult, Goog
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import Link from "next/link";
+import Image from "next/image";
 import { Mail, Lock, LogIn, Sparkle, ArrowRight, Wrench } from "lucide-react";
 
 export default function LoginPage() {
@@ -108,34 +109,104 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-3 sm:px-4" style={{ background: 'var(--bg-primary)' }}>
-      {/* Background Effects */}
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-3 sm:px-4 py-8" style={{ 
+      background: 'linear-gradient(135deg, #0a0505 0%, #1a0a0a 25%, #2d0f0f 50%, #1a0a0a 75%, #0a0505 100%)',
+      backgroundSize: '400% 400%',
+      animation: 'gradient-shift 15s ease infinite'
+    }}>
+      {/* Background Effects - Animado e Elegante */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-64 h-64 sm:w-96 sm:h-96 rounded-full blur-3xl opacity-10 sm:opacity-20" style={{ background: 'var(--accent-violet)' }}></div>
-        <div className="absolute bottom-0 right-1/4 w-64 h-64 sm:w-96 sm:h-96 rounded-full blur-3xl opacity-10 sm:opacity-20" style={{ background: 'var(--accent-emerald)' }}></div>
+        {/* Vermelho principal - flutuando suavemente */}
+        <div 
+          className="absolute top-0 left-0 w-72 h-72 sm:w-[400px] sm:h-[400px] md:w-[500px] md:h-[500px] rounded-full blur-3xl"
+          style={{ 
+            background: 'radial-gradient(circle, rgba(220, 38, 38, 0.5) 0%, rgba(185, 28, 28, 0.25) 50%, transparent 100%)',
+            animation: 'float 8s ease-in-out infinite'
+          }}
+        ></div>
+        
+        {/* Vermelho escuro - flutuando em direção oposta */}
+        <div 
+          className="absolute bottom-0 right-0 w-80 h-80 sm:w-[450px] sm:h-[450px] md:w-[550px] md:h-[550px] rounded-full blur-3xl"
+          style={{ 
+            background: 'radial-gradient(circle, rgba(185, 28, 28, 0.4) 0%, rgba(153, 27, 27, 0.2) 50%, transparent 100%)',
+            animation: 'float-reverse 10s ease-in-out infinite'
+          }}
+        ></div>
+        
+        {/* Vermelho médio - pulsando no centro */}
+        <div 
+          className="absolute top-1/2 left-1/2 w-96 h-96 sm:w-[600px] sm:h-[600px] rounded-full blur-3xl"
+          style={{ 
+            background: 'radial-gradient(circle, rgba(239, 68, 68, 0.3) 0%, rgba(220, 38, 38, 0.15) 50%, transparent 100%)',
+            animation: 'pulse-glow 6s ease-in-out infinite'
+          }}
+        ></div>
+        
+        {/* Acento vermelho claro - movimento suave */}
+        <div 
+          className="absolute top-0 right-1/4 w-64 h-64 sm:w-80 sm:h-80 rounded-full blur-3xl"
+          style={{ 
+            background: 'radial-gradient(circle, rgba(248, 113, 113, 0.25) 0%, transparent 70%)',
+            animation: 'float 12s ease-in-out infinite',
+            animationDelay: '2s'
+          }}
+        ></div>
+        
+        {/* Acento adicional - canto inferior esquerdo */}
+        <div 
+          className="absolute bottom-1/4 left-0 w-56 h-56 sm:w-72 sm:h-72 rounded-full blur-3xl"
+          style={{ 
+            background: 'radial-gradient(circle, rgba(239, 68, 68, 0.2) 0%, transparent 70%)',
+            animation: 'float-reverse 9s ease-in-out infinite',
+            animationDelay: '1s'
+          }}
+        ></div>
       </div>
 
       <div className="relative z-10 w-full max-w-md animate-fade-in">
-        {/* Header */}
-        <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4" style={{ background: 'rgba(169, 139, 255, 0.1)', border: '1px solid rgba(169, 139, 255, 0.2)' }}>
+        {/* Header com Logo */}
+        <div className="text-center mb-8 sm:mb-10">
+          {/* Ícone Grande no lugar do texto - Redondo sem margens, só vermelho */}
+          <div className="flex justify-center mb-6">
+            <div className="w-44 h-44 sm:w-56 sm:h-56 md:w-72 md:h-72 rounded-full overflow-hidden relative">
+              <Image
+                src="/icon-512.png"
+                alt="Célula 31"
+                width={512}
+                height={512}
+                priority
+                className="w-full h-full"
+                style={{
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                  transform: 'scale(1.3)',
+                  filter: 'contrast(1.1) brightness(1.05)'
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Badge de Boas-vindas */}
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4" style={{ 
+            background: 'rgba(169, 139, 255, 0.1)', 
+            border: '1px solid rgba(169, 139, 255, 0.2)'
+          }}>
             <Sparkle className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: 'var(--accent-violet)' }} />
             <span className="text-[10px] sm:text-xs font-medium" style={{ color: 'var(--accent-violet)' }}>Bem-vindo de volta</span>
           </div>
           
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-3">
-            <span className="block" style={{ color: 'var(--text-primary)' }}>Célula</span>
-            <span className="block gradient-text-violet text-4xl sm:text-5xl md:text-6xl">31</span>
-          </h1>
-          
-          <p className="text-sm sm:text-base" style={{ color: 'var(--text-secondary)' }}>
+          <p className="text-sm sm:text-base max-w-sm mx-auto" style={{ color: 'var(--text-secondary)' }}>
             Entre para continuar sua jornada espiritual
           </p>
         </div>
 
-        {/* Login Card */}
-        <div className="card-premium p-5 sm:p-6 lg:p-8">
-          <form onSubmit={handleEmailLogin} className="space-y-4 sm:space-y-5">
+        {/* Login Card - Limpo e Elegante */}
+        <div className="card-premium p-6 sm:p-8 relative" style={{
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)'
+        }}>
+          
+          <form onSubmit={handleEmailLogin} className="space-y-5 sm:space-y-6 relative z-10">
             <div>
               <label className="block text-xs sm:text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
                 Email
@@ -181,7 +252,11 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="p-3 rounded-lg text-xs sm:text-sm" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+              <div className="p-3 rounded-lg text-xs sm:text-sm animate-shake" style={{ 
+                background: 'rgba(239, 68, 68, 0.1)', 
+                color: '#ef4444', 
+                border: '1px solid rgba(239, 68, 68, 0.2)'
+              }}>
                 {error}
               </div>
             )}
@@ -189,10 +264,23 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-violet flex items-center justify-center gap-2 hover-lift disabled:opacity-50 touch-target text-sm sm:text-base py-3 sm:py-3.5"
+              className="w-full btn-violet flex items-center justify-center gap-3 hover-lift disabled:opacity-50 disabled:cursor-not-allowed touch-target text-sm sm:text-base py-4 sm:py-4 relative overflow-hidden group"
+              style={{
+                background: loading ? 'var(--bg-secondary)' : 'var(--gradient-violet)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+              }}
             >
-              <LogIn className="w-4 h-4 sm:w-5 sm:h-5" />
-              {loading ? "Entrando..." : "Entrar"}
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent-violet)' }}></div>
+                  <span>Entrando...</span>
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <span>Entrar</span>
+                </>
+              )}
             </button>
           </form>
 
