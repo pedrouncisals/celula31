@@ -1,16 +1,23 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useRooms } from "@/hooks/useRooms";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { Room } from "@/types";
 import Link from "next/link";
-import { BookOpen, Plus, Users, Calendar, ArrowLeft } from "lucide-react";
+import { BookOpen, Plus, Users, Calendar, ArrowLeft, Search, Key } from "lucide-react";
 
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { rooms, loading, error, mutate } = useRooms(user?.id || null);
+  const [searchCode, setSearchCode] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [foundRoom, setFoundRoom] = useState<Room | null>(null);
+  const [searchError, setSearchError] = useState("");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -87,6 +94,90 @@ export default function HomePage() {
             <Plus className="w-5 h-5" />
             Criar Sala
           </Link>
+        </div>
+
+        {/* Busca por Código */}
+        <div className="mb-6 card-premium p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Key className="w-5 h-5" style={{ color: 'var(--accent-gold)' }} />
+            <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Entrar em Sala Privada</h3>
+          </div>
+          <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
+            Digite o código de convite para encontrar e entrar em uma sala privada
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={searchCode}
+              onChange={(e) => {
+                setSearchCode(e.target.value.toUpperCase());
+                setSearchError("");
+                setFoundRoom(null);
+              }}
+              placeholder="Digite o código (ex: ABC123)"
+              maxLength={6}
+              className="flex-1 px-4 py-2 rounded-lg border font-mono text-center text-lg font-bold tracking-wider"
+              style={{
+                background: 'var(--bg-secondary)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)'
+              }}
+            />
+            <button
+              onClick={async () => {
+                if (!searchCode || searchCode.length !== 6) {
+                  setSearchError("O código deve ter 6 caracteres");
+                  return;
+                }
+                setSearching(true);
+                setSearchError("");
+                try {
+                  const roomsQuery = query(
+                    collection(db, "rooms"),
+                    where("inviteCode", "==", searchCode.toUpperCase()),
+                    where("visibility", "==", "private")
+                  );
+                  const snapshot = await getDocs(roomsQuery);
+                  if (snapshot.empty) {
+                    setSearchError("Sala não encontrada. Verifique o código.");
+                    setFoundRoom(null);
+                  } else {
+                    const roomData = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as Room;
+                    setFoundRoom(roomData);
+                  }
+                } catch (error) {
+                  console.error("Error searching room:", error);
+                  setSearchError("Erro ao buscar sala");
+                } finally {
+                  setSearching(false);
+                }
+              }}
+              disabled={searching || !searchCode || searchCode.length !== 6}
+              className="btn-violet hover-lift disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <Search className="w-4 h-4" />
+              {searching ? "Buscando..." : "Buscar"}
+            </button>
+          </div>
+          {searchError && (
+            <p className="text-sm mt-2" style={{ color: '#ef4444' }}>{searchError}</p>
+          )}
+          {foundRoom && (
+            <div className="mt-4 p-4 rounded-lg border-2" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--accent-gold)' }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>{foundRoom.title}</h4>
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{foundRoom.book}</p>
+                </div>
+                <Link
+                  href={`/room/${foundRoom.id}?invite=${foundRoom.inviteCode}`}
+                  className="btn-emerald hover-lift"
+                >
+                  Entrar
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
 
         {error && (

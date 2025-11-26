@@ -8,7 +8,7 @@ import { db } from "@/lib/firebase";
 import { Room, Summary } from "@/types";
 import { calculateCurrentChapter, isChapterUnlocked } from "@/lib/utils";
 import Link from "next/link";
-import { BookOpen, ArrowLeft, Lock, Trash2, Share2, Copy, Check, CheckCircle } from "lucide-react";
+import { BookOpen, ArrowLeft, Lock, Trash2, Share2, Copy, Check, CheckCircle, LogOut } from "lucide-react";
 
 export default function RoomPage() {
   const { user, loading: authLoading } = useAuth();
@@ -25,6 +25,7 @@ export default function RoomPage() {
   const [deleting, setDeleting] = useState(false);
   const [inviteError, setInviteError] = useState("");
   const [readChapters, setReadChapters] = useState<Set<number>>(new Set());
+  const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -189,6 +190,30 @@ export default function RoomPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleLeaveRoom = async () => {
+    if (!user || !room) return;
+    
+    if (room.adminId === user.id) {
+      alert("O administrador não pode sair da sala. Use 'Excluir Sala' se desejar remover a sala.");
+      return;
+    }
+
+    if (!confirm("Tem certeza que deseja sair desta sala? Você precisará do código de convite para entrar novamente.")) {
+      return;
+    }
+
+    setLeaving(true);
+    try {
+      await deleteDoc(doc(db, "rooms", roomId, "members", user.id));
+      router.push("/home");
+    } catch (error) {
+      console.error("Error leaving room:", error);
+      alert("Erro ao sair da sala");
+    } finally {
+      setLeaving(false);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
@@ -207,48 +232,62 @@ export default function RoomPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       <header className="sticky top-0 z-10" style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-subtle)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
           <Link
             href="/home"
-            className="inline-flex items-center gap-2 mb-4 hover-lift"
+            className="inline-flex items-center gap-2 mb-3 sm:mb-4 touch-target hover-lift"
             style={{ color: 'var(--text-secondary)' }}
           >
             <ArrowLeft className="w-5 h-5" />
-            Voltar
+            <span className="text-sm sm:text-base">Voltar</span>
           </Link>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{room.title}</h1>
-              <p style={{ color: 'var(--text-secondary)' }}>{room.book}</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold truncate" style={{ color: 'var(--text-primary)' }}>{room.title}</h1>
+              <p className="text-sm sm:text-base truncate" style={{ color: 'var(--text-secondary)' }}>{room.book}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {isMember && room.adminId === user.id && (
                 <>
                       {room.visibility === "private" && (
                         <button
                           onClick={() => setShowInviteModal(true)}
-                          className="flex items-center gap-2 btn-emerald hover-lift"
+                          className="flex items-center gap-2 btn-emerald hover-lift touch-target px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base"
                         >
-                          <Share2 className="w-4 h-4" />
-                          Compartilhar
+                          <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <span className="hidden sm:inline">Compartilhar</span>
+                          <span className="sm:hidden">Compart.</span>
                         </button>
                       )}
                       <button
                         onClick={handleDeleteRoom}
                         disabled={deleting}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all button-press hover-lift disabled:opacity-50"
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-all button-press hover-lift disabled:opacity-50 touch-target text-sm sm:text-base"
                         style={{ background: '#ef4444', color: 'white' }}
                       >
-                        <Trash2 className="w-4 h-4" />
-                        {deleting ? "Excluindo..." : "Excluir Sala"}
+                        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span className="hidden sm:inline">{deleting ? "Excluindo..." : "Excluir Sala"}</span>
+                        <span className="sm:hidden">{deleting ? "..." : "Excluir"}</span>
                       </button>
                 </>
+              )}
+              {isMember && room.adminId !== user.id && (
+                <button
+                  onClick={handleLeaveRoom}
+                  disabled={leaving}
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-all button-press hover-lift disabled:opacity-50 touch-target text-sm sm:text-base"
+                  style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}
+                >
+                  <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="hidden sm:inline">{leaving ? "Saindo..." : "Sair da Sala"}</span>
+                  <span className="sm:hidden">{leaving ? "..." : "Sair"}</span>
+                </button>
               )}
               {!isMember && (
                 <button
                   onClick={handleJoinRoom}
                   disabled={joining}
-                  className="btn-violet transition-colors disabled:opacity-50"
+                  className="btn-violet transition-colors disabled:opacity-50 touch-target px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base w-full sm:w-auto"
                 >
                   {joining ? "Entrando..." : "Entrar na Sala"}
                 </button>
@@ -258,36 +297,60 @@ export default function RoomPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
         {inviteError && (
           <div className="mb-4 p-4 rounded-lg" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
             {inviteError}
           </div>
         )}
         {!isMember ? (
-          <div className="text-center py-12">
-            <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>Você precisa entrar na sala para ver os capítulos</p>
+          <div className="text-center py-8 sm:py-12 px-4">
+            <p className="mb-4 text-sm sm:text-base" style={{ color: 'var(--text-secondary)' }}>Você precisa entrar na sala para ver os capítulos</p>
             {room.visibility === "private" && (
-              <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Esta é uma sala privada. Você precisa de um código de convite.</p>
+              <p className="text-xs sm:text-sm mb-4 px-4" style={{ color: 'var(--text-muted)' }}>Esta é uma sala privada. Você precisa de um código de convite.</p>
             )}
                   <button
                     onClick={handleJoinRoom}
                     disabled={joining || room.visibility === "private"}
-                    className="btn-violet hover-lift disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="btn-violet hover-lift disabled:opacity-50 disabled:cursor-not-allowed touch-target px-6 py-3 text-sm sm:text-base"
                   >
                     {joining ? "Entrando..." : room.visibility === "private" ? "Use o link de convite" : "Entrar na Sala"}
                   </button>
           </div>
         ) : (
           <>
-            <div className="mb-8 card-premium p-6">
-              <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Capítulos do Livro</h2>
-              <p style={{ color: 'var(--text-secondary)' }}>
-                Estamos no <span className="font-bold text-lg" style={{ color: 'var(--accent-violet)' }}>Capítulo {currentChapter}</span> de {room.totalChapters}
+            {room.visibility === "private" && room.inviteCode && (
+              <div className="mb-4 sm:mb-6 card-premium p-3 sm:p-4 border-2" style={{ borderColor: 'var(--accent-gold)' }}>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex-1">
+                    <p className="text-xs sm:text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Código de Convite da Sala</p>
+                    <p className="text-xl sm:text-2xl font-bold font-mono" style={{ color: 'var(--accent-gold)' }}>{room.inviteCode}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(room.inviteCode || '');
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-lg hover-lift touch-target w-full sm:w-auto"
+                    style={{ background: 'var(--bg-secondary)' }}
+                  >
+                    {copied ? <Check className="w-5 h-5" style={{ color: 'var(--accent-emerald)' }} /> : <Copy className="w-5 h-5" style={{ color: 'var(--accent-gold)' }} />}
+                    <span className="text-sm sm:text-base font-medium" style={{ color: 'var(--text-primary)' }}>
+                      {copied ? "Copiado!" : "Copiar Código"}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="mb-6 sm:mb-8 card-premium p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Capítulos do Livro</h2>
+              <p className="text-sm sm:text-base" style={{ color: 'var(--text-secondary)' }}>
+                Estamos no <span className="font-bold text-base sm:text-lg" style={{ color: 'var(--accent-violet)' }}>Capítulo {currentChapter}</span> de {room.totalChapters}
               </p>
             </div>
 
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
               {chapters.map((chapterNum) => {
                 const unlocked = isChapterUnlocked(room.startDate, chapterNum);
                 const isToday = chapterNum === currentChapter;
@@ -296,11 +359,11 @@ export default function RoomPage() {
                   <Link
                     key={chapterNum}
                     href={unlocked ? `/room/${roomId}/chapter/${chapterNum}` : "#"}
-                    className={`relative p-4 rounded-xl border-2 transition-all text-center smooth-transition ${
+                    className={`relative p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all text-center smooth-transition touch-target ${
                       unlocked
                         ? isToday
-                          ? "hover-lift hover-glow cursor-pointer"
-                          : "hover-lift cursor-pointer"
+                          ? "hover-lift hover-glow cursor-pointer active:scale-95"
+                          : "hover-lift cursor-pointer active:scale-95"
                         : "cursor-not-allowed opacity-50"
                     }`}
                     style={
@@ -326,25 +389,25 @@ export default function RoomPage() {
                           }
                     }
                   >
-                    <div className="flex flex-col items-center gap-1">
+                    <div className="flex flex-col items-center gap-0.5 sm:gap-1">
                       {unlocked ? (
                         isRead ? (
                           <div className="relative">
                             <div className="absolute inset-0 rounded-full" style={{ background: 'var(--accent-emerald)', opacity: 0.2 }} />
-                            <CheckCircle className="w-5 h-5 relative z-10" style={{ color: 'var(--accent-emerald)' }} />
+                            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 relative z-10" style={{ color: 'var(--accent-emerald)' }} />
                           </div>
                         ) : (
-                          <BookOpen className="w-5 h-5" style={{ color: isToday ? 'var(--accent-violet)' : 'var(--text-secondary)' }} />
+                          <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: isToday ? 'var(--accent-violet)' : 'var(--text-secondary)' }} />
                         )
                       ) : (
-                        <Lock className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+                        <Lock className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: 'var(--text-muted)' }} />
                       )}
-                      <span className="font-bold text-lg" style={{ color: isToday ? 'var(--accent-violet)' : isRead ? 'var(--accent-emerald)' : 'var(--text-primary)' }}>
+                      <span className="font-bold text-base sm:text-lg" style={{ color: isToday ? 'var(--accent-violet)' : isRead ? 'var(--accent-emerald)' : 'var(--text-primary)' }}>
                         {chapterNum}
                       </span>
                     </div>
                     {isToday && (
-                      <div className="absolute -top-1.5 -right-1.5 text-white text-xs px-1.5 py-0.5 rounded-full font-semibold shadow-md" style={{ background: 'var(--accent-violet)' }}>
+                      <div className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 text-white text-[10px] sm:text-xs px-1 sm:px-1.5 py-0.5 rounded-full font-semibold shadow-md" style={{ background: 'var(--accent-violet)' }}>
                         Hoje
                       </div>
                     )}
@@ -358,18 +421,18 @@ export default function RoomPage() {
 
           {/* Modal de Convite */}
           {showInviteModal && room?.inviteCode && (
-            <div className="fixed inset-0 flex items-center justify-center z-50 animate-fade-in" style={{ background: 'rgba(0, 0, 0, 0.5)' }}>
-              <div className="card-premium p-6 max-w-md w-full mx-4 animate-bounce-in shadow-2xl">
-            <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Compartilhar Sala</h3>
-            <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
+            <div className="fixed inset-0 flex items-center justify-center z-50 animate-fade-in p-4" style={{ background: 'rgba(0, 0, 0, 0.5)' }}>
+              <div className="card-premium p-4 sm:p-6 max-w-md w-full animate-bounce-in shadow-2xl">
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4" style={{ color: 'var(--text-primary)' }}>Compartilhar Sala</h3>
+            <p className="text-sm sm:text-base mb-3 sm:mb-4" style={{ color: 'var(--text-secondary)' }}>
               Compartilhe este link para convidar pessoas para a sala:
             </p>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-3 sm:mb-4">
               <input
                 type="text"
                 readOnly
                 value={`${typeof window !== "undefined" ? window.location.origin : ""}/room/${roomId}?invite=${room.inviteCode}`}
-                className="flex-1 px-4 py-2 rounded-lg border"
+                className="flex-1 px-3 sm:px-4 py-2 rounded-lg border text-xs sm:text-sm touch-target"
                 style={{
                   background: 'var(--bg-secondary)',
                   borderColor: 'var(--border-subtle)',
@@ -378,17 +441,18 @@ export default function RoomPage() {
               />
                   <button
                     onClick={handleCopyInviteLink}
-                    className="flex items-center gap-2 btn-violet hover-lift"
+                    className="flex items-center justify-center gap-2 btn-violet hover-lift touch-target px-4 py-2.5 text-sm sm:text-base"
                   >
-                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copied ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : <Copy className="w-4 h-4 sm:w-5 sm:h-5" />}
+                    <span className="hidden sm:inline">{copied ? "Copiado!" : "Copiar"}</span>
                   </button>
             </div>
-            <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-              Código de convite: <span className="font-mono font-bold" style={{ color: 'var(--accent-violet)' }}>{room.inviteCode}</span>
+            <p className="text-xs sm:text-sm mb-3 sm:mb-4" style={{ color: 'var(--text-muted)' }}>
+              Código de convite: <span className="font-mono font-bold text-sm sm:text-base" style={{ color: 'var(--accent-violet)' }}>{room.inviteCode}</span>
             </p>
                 <button
                   onClick={() => setShowInviteModal(false)}
-                  className="w-full px-4 py-2 rounded-lg transition-all button-press hover-lift"
+                  className="w-full px-4 py-2.5 sm:py-2 rounded-lg transition-all button-press hover-lift touch-target text-sm sm:text-base"
                   style={{
                     background: 'var(--bg-tertiary)',
                     color: 'var(--text-secondary)'

@@ -27,6 +27,7 @@ import { getChapterHighlights } from "@/lib/highlights";
 import { getChapterHighlights as getVerseHighlights, saveVerseHighlight, removeVerseHighlight } from "@/lib/verse-highlights";
 import type { VerseHighlight } from "@/lib/verse-highlights";
 import { autoMarkChapterAsRead } from "@/lib/reading-plans";
+import { updateUserStreak } from "@/lib/streak";
 import Link from "next/link";
 import { ArrowLeft, Heart, MessageCircle, Send, Edit2, Trash2, BookOpen, ChevronRight, Highlighter, X, CheckCircle2, BookMarked, Plus } from "lucide-react";
 
@@ -140,7 +141,7 @@ export default function ChapterPage() {
       const blocks = getVerseBlocks(text);
       setVerseBlocks(blocks);
 
-      // Marcar automaticamente em planos de leitura ativos
+      // Marcar automaticamente em planos de leitura ativos e atualizar streak
       if (user) {
         const updatedPlans = await autoMarkChapterAsRead(user.id, roomData.book, chapterNum);
         if (updatedPlans.length > 0) {
@@ -151,6 +152,8 @@ export default function ChapterPage() {
           // Remover notificação após 5 segundos
           setTimeout(() => setNotification(null), 5000);
         }
+        // Atualizar streak do usuário
+        await updateUserStreak(user.id);
       }
 
       // Carregar resumos (primeira página)

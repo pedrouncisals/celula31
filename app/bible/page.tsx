@@ -7,6 +7,7 @@ import { getAvailableBooks, getBibleChapter } from "@/lib/bible";
 import { getChapterHighlights as getVerseHighlights, saveVerseHighlight, removeVerseHighlight } from "@/lib/verse-highlights";
 import type { VerseHighlight } from "@/lib/verse-highlights";
 import { autoMarkChapterAsRead } from "@/lib/reading-plans";
+import { updateUserStreak } from "@/lib/streak";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, Search, ChevronRight, ChevronLeft, Highlighter, X, CheckCircle2 } from "lucide-react";
 
@@ -68,7 +69,7 @@ export default function BiblePage() {
       setSelectedBook(book);
       setSelectedChapter(chapter);
       
-      // Marcar automaticamente em planos de leitura ativos
+      // Marcar automaticamente em planos de leitura ativos e atualizar streak
       if (user) {
         const updatedPlans = await autoMarkChapterAsRead(user.id, book, chapter);
         if (updatedPlans.length > 0) {
@@ -79,6 +80,8 @@ export default function BiblePage() {
           // Remover notificação após 5 segundos
           setTimeout(() => setNotification(null), 5000);
         }
+        // Atualizar streak do usuário
+        await updateUserStreak(user.id);
       }
     } catch (error) {
       console.error("Error loading chapter:", error);

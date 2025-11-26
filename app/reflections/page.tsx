@@ -863,9 +863,9 @@ export default function ReflectionsPage() {
                                       )}
                                     </div>
                                     {comment.authorChurch && (
-                                      <div className="flex items-center gap-1 mb-1">
-                                        <Church className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--accent-gold)' }} />
-                                        <span className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
+                                      <div className="flex items-start gap-1 mb-1 min-w-0">
+                                        <Church className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent-gold)' }} />
+                                        <span className="text-xs break-words" style={{ color: 'var(--text-secondary)' }}>
                                           {comment.authorChurch}
                                         </span>
                                       </div>

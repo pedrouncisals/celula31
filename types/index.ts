@@ -7,6 +7,7 @@ export interface User {
   church?: string;
   favoriteVerse?: string; // Ex: "João 3:16"
   streak: number;
+  lastReadDate?: string; // ISO string - última data que o usuário leu um capítulo
 }
 
 export interface Room {
