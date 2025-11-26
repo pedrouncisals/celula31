@@ -1,0 +1,226 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================
+    // USUÁRIOS
+    // ============================================
+    // Usuários podem ler perfis de outros usuários (para exibir nome/foto)
+    // Mas só podem editar seu próprio perfil
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // ============================================
+    // SALAS (ROOMS) - Módulo Estudo Bíblico
+    // ============================================
+    match /rooms/{roomId} {
+      // Qualquer usuário autenticado pode ler salas (para ver lista)
+      allow read: if request.auth != null;
+      // Qualquer usuário autenticado pode criar salas
+      allow create: if request.auth != null;
+      // Apenas o admin pode atualizar ou excluir a sala
+      allow update, delete: if request.auth != null && 
+        resource.data.adminId == request.auth.uid;
+      
+      // Membros da sala
+      match /members/{memberId} {
+        // Qualquer usuário autenticado pode ver membros
+        allow read: if request.auth != null;
+        // Qualquer usuário autenticado pode se adicionar como membro
+        // Ou o admin pode adicionar/remover membros
+        allow write: if request.auth != null;
+      }
+      
+      // Capítulos da sala
+      match /chapters/{chapterId} {
+        // Apenas membros podem ler capítulos
+        allow read: if request.auth != null && 
+          exists(/databases/$(database)/documents/rooms/$(roomId)/members/$(request.auth.uid));
+        // Apenas o admin pode criar/atualizar capítulos (para definir destaques)
+        allow write: if request.auth != null && 
+          resource.data.adminId == request.auth.uid;
+      }
+      
+      // Resumos da sala
+      match /summaries/{summaryId} {
+        // Apenas membros podem ler resumos
+        allow read: if request.auth != null && 
+          exists(/databases/$(database)/documents/rooms/$(roomId)/members/$(request.auth.uid));
+        // Apenas membros podem criar resumos, e devem ser o autor
+        allow create: if request.auth != null && 
+          exists(/databases/$(database)/documents/rooms/$(roomId)/members/$(request.auth.uid)) &&
+          request.resource.data.authorId == request.auth.uid;
+        // O autor pode editar/excluir seu próprio resumo
+        // OU qualquer membro pode atualizar apenas os campos likes e likedBy (para curtidas)
+        allow update: if request.auth != null && 
+          exists(/databases/$(database)/documents/rooms/$(roomId)/members/$(request.auth.uid)) &&
+          (
+            // Autor pode atualizar qualquer campo
+            resource.data.authorId == request.auth.uid ||
+            // Qualquer membro pode atualizar apenas likes e likedBy
+            (
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) &&
+              request.resource.data.authorId == resource.data.authorId &&
+              request.resource.data.chapter == resource.data.chapter &&
+              request.resource.data.verseBlock == resource.data.verseBlock
+            )
+          );
+        // Apenas o autor pode excluir
+        allow delete: if request.auth != null && 
+          resource.data.authorId == request.auth.uid;
+      }
+      
+      // Comentários da sala
+      match /comments/{commentId} {
+        // Apenas membros podem ler comentários
+        allow read: if request.auth != null && 
+          exists(/databases/$(database)/documents/rooms/$(roomId)/members/$(request.auth.uid));
+        // Apenas membros podem criar comentários, e devem ser o autor
+        allow create: if request.auth != null && 
+          exists(/databases/$(database)/documents/rooms/$(roomId)/members/$(request.auth.uid)) &&
+          request.resource.data.authorId == request.auth.uid;
+        // Apenas o autor pode editar/excluir seu próprio comentário
+        allow update, delete: if request.auth != null && 
+          resource.data.authorId == request.auth.uid;
+      }
+    }
+    
+    // ============================================
+    // COLLECTION GROUP QUERIES - Para otimizações
+    // ============================================
+    // Regras específicas para collectionGroup queries
+    // Permite buscar membros em todas as salas de uma vez
+    // IMPORTANTE: Estas regras permitem collectionGroup queries apenas quando
+    // o usuário está buscando seus próprios dados (userId == request.auth.uid)
+    match /{path=**}/members/{memberId} {
+      // Usuários podem ler membros se forem o próprio membro (userId == auth.uid)
+      // Isso permite collectionGroup queries para buscar todas as salas do usuário
+      allow read: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+    }
+    
+    // Permite buscar resumos em todas as salas de uma vez (para profile)
+    match /{path=**}/summaries/{summaryId} {
+      // Usuários podem ler resumos se forem o autor
+      // Isso permite collectionGroup queries para buscar todos os resumos do usuário
+      allow read: if request.auth != null && 
+        resource.data.authorId == request.auth.uid;
+    }
+    
+    // Permite buscar comentários em todas as salas de uma vez (para profile)
+    match /{path=**}/comments/{commentId} {
+      // Usuários podem ler comentários se forem o autor
+      // Isso permite collectionGroup queries para buscar todos os comentários do usuário
+      allow read: if request.auth != null && 
+        resource.data.authorId == request.auth.uid;
+    }
+    
+    // ============================================
+    // SERMÕES - Módulo Criador de Sermões
+    // ============================================
+    match /sermons/{sermonId} {
+      // Apenas o autor pode ler seus próprios sermões
+      allow read: if request.auth != null && 
+        resource.data.authorId == request.auth.uid;
+      // Apenas usuários autenticados podem criar sermões
+      // E devem ser o autor
+      allow create: if request.auth != null && 
+        request.resource.data.authorId == request.auth.uid;
+      // Apenas o autor pode editar/excluir seus próprios sermões
+      allow update, delete: if request.auth != null && 
+        resource.data.authorId == request.auth.uid;
+    }
+    
+    // ============================================
+    // HIGHLIGHTS DE VERSÍCULOS
+    // ============================================
+    match /verseHighlights/{highlightId} {
+      // Usuários podem ler apenas seus próprios highlights
+      allow read: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+      // Usuários podem criar highlights apenas para si mesmos
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid;
+      // Usuários podem atualizar apenas seus próprios highlights (e não podem mudar o userId)
+      allow update: if request.auth != null && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId;
+      // Usuários podem excluir apenas seus próprios highlights
+      allow delete: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+    }
+    
+    // ============================================
+    // PLANOS DE LEITURA
+    // ============================================
+    match /readingPlans/{planId} {
+      // Qualquer usuário autenticado pode ler planos
+      allow read: if request.auth != null;
+      // Apenas admins podem criar/atualizar planos (por enquanto, qualquer usuário autenticado)
+      allow create, update: if request.auth != null;
+    }
+    
+    // Progresso de leitura do usuário
+    match /users/{userId}/readingPlans/{planId} {
+      // Usuários podem ler apenas seu próprio progresso
+      allow read: if request.auth != null && 
+        request.auth.uid == userId;
+      // Usuários podem criar/atualizar apenas seu próprio progresso
+      allow write: if request.auth != null && 
+        request.auth.uid == userId;
+    }
+    
+    // ============================================
+    // REFLEXÕES
+    // ============================================
+    match /reflections/{reflectionId} {
+      // Qualquer usuário autenticado pode ler reflexões (exceto deletadas)
+      allow read: if request.auth != null && 
+        (!('deleted' in resource.data) || resource.data.deleted != true);
+      
+      // Usuários autenticados podem criar reflexões e devem ser o autor
+      allow create: if request.auth != null && 
+        request.resource.data.authorId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['authorId', 'title', 'content', 'likes', 'likedBy', 'createdAt']);
+      
+      // Regras de atualização:
+      // 1. Autor pode atualizar qualquer campo (exceto authorId)
+      // 2. Qualquer usuário pode atualizar apenas likes e likedBy (para curtidas)
+      allow update: if request.auth != null && 
+        (
+          // Autor pode atualizar qualquer campo, mas não pode mudar authorId
+          (resource.data.authorId == request.auth.uid &&
+           request.resource.data.authorId == resource.data.authorId) ||
+          // Qualquer usuário pode atualizar apenas likes e likedBy
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) &&
+            request.resource.data.authorId == resource.data.authorId &&
+            request.resource.data.title == resource.data.title &&
+            request.resource.data.content == resource.data.content
+          )
+        );
+      
+      // Apenas o autor pode excluir (ou marcar como deletado)
+      allow delete: if request.auth != null && 
+        resource.data.authorId == request.auth.uid;
+      
+      // Comentários das reflexões
+      match /comments/{commentId} {
+        // Qualquer usuário autenticado pode ler comentários (exceto deletados)
+        allow read: if request.auth != null && 
+          (!('deleted' in resource.data) || resource.data.deleted != true);
+        // Usuários autenticados podem criar comentários e devem ser o autor
+        allow create: if request.auth != null && 
+          request.resource.data.authorId == request.auth.uid &&
+          request.resource.data.reflectionId == reflectionId;
+        // Apenas o autor pode editar/excluir seu próprio comentário
+        allow update, delete: if request.auth != null && 
+          resource.data.authorId == request.auth.uid;
+      }
+    }
+  }
+}
+

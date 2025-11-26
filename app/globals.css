@@ -1,0 +1,419 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Dark Mode Premium Palette */
+  --bg-primary: #0E0E18;
+  --bg-secondary: #161623;
+  --bg-tertiary: #1A1A28;
+  --bg-card: #1C1C2A;
+  --bg-hover: #22223A;
+  
+  --text-primary: #ECECF1;
+  --text-secondary: #A6A6BF;
+  --text-muted: #6B6B8F;
+  
+  --accent-emerald: #8AE6BF;
+  --accent-violet: #A98BFF;
+  --accent-gold: #E8C27A;
+  --accent-blue: #7AB8FF;
+  
+  --border-subtle: rgba(166, 166, 191, 0.1);
+  --border-medium: rgba(166, 166, 191, 0.2);
+  
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  
+  --gradient-emerald: linear-gradient(135deg, #8AE6BF 0%, #5FD39A 100%);
+  --gradient-violet: linear-gradient(135deg, #A98BFF 0%, #8B6FDB 100%);
+  --gradient-gold: linear-gradient(135deg, #E8C27A 0%, #D4A854 100%);
+  --gradient-blue: linear-gradient(135deg, #7AB8FF 0%, #5A98E8 100%);
+}
+
+body {
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'SF Pro Display', sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography system */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+h1 { font-size: 2.25rem; line-height: 1.2; }
+h2 { font-size: 1.875rem; line-height: 1.3; }
+h3 { font-size: 1.5rem; line-height: 1.4; }
+
+p {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+/* Base components */
+.card-premium {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-premium:hover {
+  border-color: var(--border-medium);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-premium {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.btn-emerald,
+.btn-violet,
+.btn-gold {
+  @apply px-4 py-2.5 rounded-xl font-medium text-sm md:text-base;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-emerald {
+  background: var(--gradient-emerald);
+  color: var(--bg-primary);
+  box-shadow: 0 4px 16px rgba(138, 230, 191, 0.25), 0 0 0 1px rgba(138, 230, 191, 0.1);
+  font-weight: 600;
+}
+
+.btn-emerald:hover,
+.btn-emerald:active {
+  box-shadow: 0 6px 24px rgba(138, 230, 191, 0.4), 0 0 0 1px rgba(138, 230, 191, 0.2);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn-emerald:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-violet {
+  background: var(--gradient-violet);
+  color: white;
+  box-shadow: 0 4px 16px rgba(169, 139, 255, 0.25), 0 0 0 1px rgba(169, 139, 255, 0.1);
+  font-weight: 600;
+}
+
+.btn-violet:hover,
+.btn-violet:active {
+  box-shadow: 0 6px 24px rgba(169, 139, 255, 0.4), 0 0 0 1px rgba(169, 139, 255, 0.2);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn-violet:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-gold {
+  background: var(--gradient-gold);
+  color: var(--bg-primary);
+  box-shadow: 0 4px 16px rgba(232, 194, 122, 0.25), 0 0 0 1px rgba(232, 194, 122, 0.1);
+  font-weight: 600;
+}
+
+.btn-gold:hover,
+.btn-gold:active {
+  box-shadow: 0 6px 24px rgba(232, 194, 122, 0.4), 0 0 0 1px rgba(232, 194, 122, 0.2);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn-gold:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Input styling */
+input, textarea, select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  transition: all 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent-violet);
+  box-shadow: 0 0 0 3px rgba(169, 139, 255, 0.1);
+  background: var(--bg-tertiary);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Premium Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(169, 139, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(169, 139, 255, 0.5);
+  }
+}
+
+@keyframes shimmer-dark {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-slide-in {
+  animation: slide-in 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-glow {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Mobile Optimization */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Premium Micro-interactions */
+.hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Mobile: Remove hover effects on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .hover-lift:hover {
+    transform: none;
+  }
+}
+
+.hover-glow-emerald:hover {
+  box-shadow: 0 8px 32px rgba(138, 230, 191, 0.4);
+}
+
+.hover-glow-violet:hover {
+  box-shadow: 0 8px 32px rgba(169, 139, 255, 0.4);
+}
+
+.hover-glow-gold:hover {
+  box-shadow: 0 8px 32px rgba(232, 194, 122, 0.4);
+}
+
+/* Loading shimmer effect - dark */
+.shimmer-dark {
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary) 0%,
+    var(--bg-tertiary) 50%,
+    var(--bg-secondary) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer-dark 2s infinite;
+}
+
+/* Smooth transitions */
+.smooth-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Button press effect */
+.button-press:active {
+  transform: scale(0.96);
+}
+
+/* Gradient text */
+.gradient-text-emerald {
+  background: var(--gradient-emerald);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-violet {
+  background: var(--gradient-violet);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-gold {
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Bible verse highlighting */
+.verse-number {
+  color: var(--accent-violet);
+  font-weight: 600;
+  font-size: 0.9em;
+  margin-right: 0.5rem;
+}
+
+.verse-text {
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-hover);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-violet);
+}
+
+/* Print styles */
+@media print {
+  @page {
+    margin: 2cm;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .print\\:hidden {
+    display: none !important;
+  }
+  
+  h1, h2, h3 {
+    page-break-after: avoid;
+    color: black !important;
+  }
+  
+  p {
+    color: black !important;
+  }
+}
+
+/* Mobile optimizations */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Button press effect */
+.button-press:active {
+  transform: scale(0.95);
+}
+
+/* Verse text styling */
+.verse-text {
+  line-height: 1.8;
+  font-size: 17px;
+  letter-spacing: 0.01em;
+}
+
+.verse-number {
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
+@media (max-width: 768px) {
+  /* Melhorar legibilidade no mobile */
+  body {
+    font-size: 16px !important;
+    line-height: 1.6;
+  }
+
+  /* Otimizar tamanhos de fonte */
+  h1 {
+    font-size: 1.75rem !important;
+  }
+
+  h2 {
+    font-size: 1.5rem !important;
+  }
+
+  h3 {
+    font-size: 1.25rem !important;
+  }
+
+  /* Garantir alvos de toque adequados */
+  button, a, input[type="button"], input[type="submit"] {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+}
+
