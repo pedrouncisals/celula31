@@ -103,7 +103,7 @@ export default function ReflectionsPage() {
       const authorIds = new Set<string>();
       
       // Primeiro, coletar todos os authorIds
-      snapshot.docs.forEach((docSnap) => {
+      snapshot.docs.forEach((docSnap: QueryDocumentSnapshot<Reflection>) => {
         const data = docSnap.data();
         if (data.deleted) return;
         authorIds.add(data.authorId);
@@ -120,7 +120,7 @@ export default function ReflectionsPage() {
       const authorsMap = new Map(authorsData.map(a => [a.id, a.data]));
 
       // Agora processar reflexões com dados dos autores
-      snapshot.docs.forEach((docSnap) => {
+      snapshot.docs.forEach((docSnap: QueryDocumentSnapshot<Reflection>) => {
         const data = docSnap.data();
         if (data.deleted) return;
         
@@ -216,9 +216,13 @@ export default function ReflectionsPage() {
       const authorIds = new Set<string>();
       
       // Primeiro, coletar todos os comentários não deletados e seus authorIds
-      const validComments = snapshot.docs.filter(doc => !doc.data().deleted);
-      validComments.forEach(doc => {
-        authorIds.add(doc.data().authorId);
+      const validComments = snapshot.docs.filter((doc: QueryDocumentSnapshot<ReflectionComment>) => {
+        const data = doc.data();
+        return !data.deleted;
+      });
+      validComments.forEach((doc: QueryDocumentSnapshot<ReflectionComment>) => {
+        const data = doc.data();
+        authorIds.add(data.authorId);
       });
 
       // Buscar todos os autores de uma vez (otimização)
@@ -232,7 +236,7 @@ export default function ReflectionsPage() {
       const authorsMap = new Map(authorsData.map(a => [a.id, a.data]));
 
       // Agora processar comentários com dados dos autores
-      validComments.forEach((docSnap) => {
+      validComments.forEach((docSnap: QueryDocumentSnapshot<ReflectionComment>) => {
         const data = docSnap.data();
         const authorData = authorsMap.get(data.authorId);
 

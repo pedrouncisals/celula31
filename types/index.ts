@@ -81,6 +81,7 @@ export interface Reflection {
   authorPhoto?: string;
   authorFavoriteVerse?: string;
   authorChurch?: string;
+  deleted?: boolean; // Campo para soft delete
 }
 
 export interface ReflectionComment {
@@ -93,5 +94,6 @@ export interface ReflectionComment {
   authorPhoto?: string;
   authorFavoriteVerse?: string;
   authorChurch?: string;
+  deleted?: boolean; // Campo para soft delete
 }
 
