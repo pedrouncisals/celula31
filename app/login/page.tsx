@@ -8,6 +8,7 @@ import { auth, db } from "@/lib/firebase";
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, Lock, LogIn, Sparkle, ArrowRight, Wrench } from "lucide-react";
+import BibleCanvas from "@/components/BibleCanvas";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -110,61 +111,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-3 sm:px-4 py-8" style={{ 
-      background: 'linear-gradient(135deg, #0a0505 0%, #1a0a0a 25%, #2d0f0f 50%, #1a0a0a 75%, #0a0505 100%)',
-      backgroundSize: '400% 400%',
-      animation: 'gradient-shift 15s ease infinite'
+      background: '#050b1d'
     }}>
-      {/* Background Effects - Animado e Elegante */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        {/* Vermelho principal - flutuando suavemente */}
-        <div 
-          className="absolute top-0 left-0 w-72 h-72 sm:w-[400px] sm:h-[400px] md:w-[500px] md:h-[500px] rounded-full blur-3xl"
-          style={{ 
-            background: 'radial-gradient(circle, rgba(220, 38, 38, 0.5) 0%, rgba(185, 28, 28, 0.25) 50%, transparent 100%)',
-            animation: 'float 8s ease-in-out infinite'
-          }}
-        ></div>
-        
-        {/* Vermelho escuro - flutuando em direção oposta */}
-        <div 
-          className="absolute bottom-0 right-0 w-80 h-80 sm:w-[450px] sm:h-[450px] md:w-[550px] md:h-[550px] rounded-full blur-3xl"
-          style={{ 
-            background: 'radial-gradient(circle, rgba(185, 28, 28, 0.4) 0%, rgba(153, 27, 27, 0.2) 50%, transparent 100%)',
-            animation: 'float-reverse 10s ease-in-out infinite'
-          }}
-        ></div>
-        
-        {/* Vermelho médio - pulsando no centro */}
-        <div 
-          className="absolute top-1/2 left-1/2 w-96 h-96 sm:w-[600px] sm:h-[600px] rounded-full blur-3xl"
-          style={{ 
-            background: 'radial-gradient(circle, rgba(239, 68, 68, 0.3) 0%, rgba(220, 38, 38, 0.15) 50%, transparent 100%)',
-            animation: 'pulse-glow 6s ease-in-out infinite'
-          }}
-        ></div>
-        
-        {/* Acento vermelho claro - movimento suave */}
-        <div 
-          className="absolute top-0 right-1/4 w-64 h-64 sm:w-80 sm:h-80 rounded-full blur-3xl"
-          style={{ 
-            background: 'radial-gradient(circle, rgba(248, 113, 113, 0.25) 0%, transparent 70%)',
-            animation: 'float 12s ease-in-out infinite',
-            animationDelay: '2s'
-          }}
-        ></div>
-        
-        {/* Acento adicional - canto inferior esquerdo */}
-        <div 
-          className="absolute bottom-1/4 left-0 w-56 h-56 sm:w-72 sm:h-72 rounded-full blur-3xl"
-          style={{ 
-            background: 'radial-gradient(circle, rgba(239, 68, 68, 0.2) 0%, transparent 70%)',
-            animation: 'float-reverse 9s ease-in-out infinite',
-            animationDelay: '1s'
-          }}
-        ></div>
-      </div>
+      {/* Canvas com animação bíblica */}
+      <BibleCanvas />
 
-      <div className="relative z-10 w-full max-w-md animate-fade-in">
+      <div className="relative z-10 w-full max-w-md animate-fade-in" style={{ zIndex: 2 }}>
         {/* Header com Logo */}
         <div className="text-center mb-8 sm:mb-10">
           {/* Ícone Grande no lugar do texto - Redondo sem margens, só vermelho */}
@@ -189,11 +141,13 @@ export default function LoginPage() {
 
           {/* Badge de Boas-vindas */}
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4" style={{ 
-            background: 'rgba(169, 139, 255, 0.1)', 
-            border: '1px solid rgba(169, 139, 255, 0.2)'
+            background: 'rgba(95, 160, 255, 0.1)', 
+            border: '1px solid rgba(95, 160, 255, 0.2)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)'
           }}>
-            <Sparkle className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: 'var(--accent-violet)' }} />
-            <span className="text-[10px] sm:text-xs font-medium" style={{ color: 'var(--accent-violet)' }}>Bem-vindo de volta</span>
+            <Sparkle className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: '#5fa0ff' }} />
+            <span className="text-[10px] sm:text-xs font-medium" style={{ color: '#5fa0ff' }}>Bem-vindo de volta</span>
           </div>
           
           <p className="text-sm sm:text-base max-w-sm mx-auto" style={{ color: 'var(--text-secondary)' }}>
@@ -201,9 +155,13 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Login Card - Limpo e Elegante */}
+        {/* Login Card - Glassmorphism */}
         <div className="card-premium p-6 sm:p-8 relative" style={{
-          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)'
+          background: 'rgba(5, 11, 29, 0.7)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(95, 160, 255, 0.2)',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(95, 160, 255, 0.1)'
         }}>
           
           <form onSubmit={handleEmailLogin} className="space-y-5 sm:space-y-6 relative z-10">
@@ -220,9 +178,11 @@ export default function LoginPage() {
                   required
                   className="w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-xl border transition-all text-sm sm:text-base touch-target"
                   style={{
-                    background: 'var(--bg-secondary)',
-                    borderColor: 'var(--border-subtle)',
-                    color: 'var(--text-primary)'
+                    background: 'rgba(5, 11, 29, 0.5)',
+                    borderColor: 'rgba(95, 160, 255, 0.3)',
+                    color: '#ECECF1',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)'
                   }}
                   placeholder="seu@email.com"
                 />
@@ -242,9 +202,11 @@ export default function LoginPage() {
                   required
                   className="w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-xl border transition-all text-sm sm:text-base touch-target"
                   style={{
-                    background: 'var(--bg-secondary)',
-                    borderColor: 'var(--border-subtle)',
-                    color: 'var(--text-primary)'
+                    background: 'rgba(5, 11, 29, 0.5)',
+                    borderColor: 'rgba(95, 160, 255, 0.3)',
+                    color: '#ECECF1',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)'
                   }}
                   placeholder="••••••••"
                 />
@@ -264,10 +226,16 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-violet flex items-center justify-center gap-3 hover-lift disabled:opacity-50 disabled:cursor-not-allowed touch-target text-sm sm:text-base py-4 sm:py-4 relative overflow-hidden group"
+              className="w-full flex items-center justify-center gap-3 hover-lift disabled:opacity-50 disabled:cursor-not-allowed touch-target text-sm sm:text-base py-4 sm:py-4 relative overflow-hidden group"
               style={{
-                background: loading ? 'var(--bg-secondary)' : 'var(--gradient-violet)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                background: loading 
+                  ? 'rgba(5, 11, 29, 0.5)' 
+                  : 'linear-gradient(135deg, #5fa0ff 0%, #4a8ae6 100%)',
+                color: '#050b1d',
+                fontWeight: 600,
+                borderRadius: '0.75rem',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: loading ? 'none' : '0 4px 20px rgba(95, 160, 255, 0.4)'
               }}
             >
               {loading ? (
@@ -285,9 +253,9 @@ export default function LoginPage() {
           </form>
 
           <div className="my-5 sm:my-6 flex items-center">
-            <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, transparent, var(--border-subtle))' }}></div>
-            <span className="px-3 sm:px-4 text-xs sm:text-sm" style={{ color: 'var(--text-muted)' }}>ou</span>
-            <div className="flex-1 h-px" style={{ background: 'linear-gradient(to left, transparent, var(--border-subtle))' }}></div>
+            <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(95, 160, 255, 0.3))' }}></div>
+            <span className="px-3 sm:px-4 text-xs sm:text-sm" style={{ color: '#A6A6BF' }}>ou</span>
+            <div className="flex-1 h-px" style={{ background: 'linear-gradient(to left, transparent, rgba(95, 160, 255, 0.3))' }}></div>
           </div>
 
           {/* Google Login - Com o meme */}
@@ -337,9 +305,9 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="mt-5 sm:mt-6 text-center text-xs sm:text-sm" style={{ color: 'var(--text-secondary)' }}>
+          <div className="mt-5 sm:mt-6 text-center text-xs sm:text-sm" style={{ color: '#A6A6BF' }}>
             Não tem uma conta?{" "}
-            <Link href="/register" className="font-semibold hover:underline transition-all inline-flex items-center gap-1" style={{ color: 'var(--accent-violet)' }}>
+            <Link href="/register" className="font-semibold hover:underline transition-all inline-flex items-center gap-1" style={{ color: '#5fa0ff' }}>
               Criar conta
               <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </Link>
